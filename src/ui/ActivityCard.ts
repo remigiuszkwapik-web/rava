@@ -27,8 +27,7 @@ function effortBadge(intensity: number): HTMLElement {
             ? "var(--z6)"
             : "var(--hr)";
   const badge = h("span", { class: "effort-badge" }, `Intensität ${intensity}/10`);
-  badge.style.color = color;
-  badge.style.borderColor = color;
+  badge.style.background = color;
   return badge;
 }
 
@@ -174,7 +173,8 @@ export function activityCard(
     ["Fahrzeit", fmtDuration(m.durationMovingS)],
   ]);
 
-  const card = h("div", { class: "panel" }, head, hero);
+  const heroBlock = h("div", { class: "hero-block" }, head, hero);
+  const card = h("div", { class: "panel" }, heroBlock);
 
   // Stufe 2: Route direkt unter den Hero-Zahlen (nur mit GPS)
   const route = drawRoute(a);
