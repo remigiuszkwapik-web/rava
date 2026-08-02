@@ -1,0 +1,19 @@
+{
+  "name": "Rava – Ausdaueranalyse",
+  "short_name": "Rava",
+  "description": "Persönliche Ausdaueranalyse für Rad & Lauf, offline-fähig.",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#0E1116",
+  "theme_color": "#0E1116",
+  "icons": [
+    {
+      "src": "./icons/icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}
