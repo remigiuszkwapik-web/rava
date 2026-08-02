@@ -193,7 +193,7 @@ function zoneBars(
 ): void {
   ctx.fillStyle = COL.muted;
   ctx.font = "11px system-ui";
-  ctx.fillText(title, x0, y0 - 4);
+  ctx.fillText(title, x0, y0 - 8);
   const total = z.seconds.reduce((a, b) => a + b, 0) || 1;
   const n = z.seconds.length;
   const gap = 4;
@@ -204,17 +204,24 @@ function zoneBars(
     const bx = x0 + i * (bw + gap);
     ctx.fillStyle = colors[i] ?? COL.line;
     ctx.fillRect(bx, y0 + (hgt - bh), bw, bh);
+    // Prozent über dem Balken
+    const pct = Math.round((z.seconds[i] / total) * 100);
     ctx.fillStyle = COL.muted;
     ctx.font = "9px system-ui";
-    const pct = Math.round((z.seconds[i] / total) * 100);
     if (pct > 0) {
       const lbl = pct + "%";
-      ctx.fillText(lbl, bx + (bw - ctx.measureText(lbl).width) / 2, y0 + hgt + 11);
+      ctx.fillText(
+        lbl,
+        bx + (bw - ctx.measureText(lbl).width) / 2,
+        y0 + hgt - bh - 3,
+      );
     }
+    // Zonen-Kürzel unter dem Balken
+    ctx.font = "10px system-ui";
     ctx.fillText(
       z.labels[i],
       bx + (bw - ctx.measureText(z.labels[i]).width) / 2,
-      y0 - 4 + 0,
+      y0 + hgt + 13,
     );
   }
 }
@@ -223,15 +230,15 @@ export function drawZones(a: Activity): HTMLCanvasElement | null {
   const pz = a.metrics.powerZones;
   const hz = a.metrics.hrZones;
   if (!pz && !hz) return null;
-  return makeChart(110, (ctx, w) => {
+  return makeChart(128, (ctx, w) => {
     const cols = pz && hz ? 2 : 1;
     const cw = (w - (cols - 1) * 16) / cols;
     let x = 0;
     if (pz) {
-      zoneBars(ctx, x, 20, cw, 70, pz, POWER_ZONE_COLORS, "Leistungszonen");
+      zoneBars(ctx, x, 30, cw, 78, pz, POWER_ZONE_COLORS, "Leistungszonen");
       x += cw + 16;
     }
-    if (hz) zoneBars(ctx, x, 20, cw, 70, hz, HR_ZONE_COLORS, "HF-Zonen");
+    if (hz) zoneBars(ctx, x, 30, cw, 78, hz, HR_ZONE_COLORS, "HF-Zonen");
   });
 }
 
