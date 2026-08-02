@@ -12,34 +12,68 @@ import {
 import { coachComment } from "../llm/coach";
 import type { Activity, Profile } from "../model";
 import { getApiKey, getCoachModel } from "../state/settings";
-import { drawTimeline, drawZones } from "./charts";
+import { drawRoute, drawTimeline, drawZones } from "./charts";
 import { clear, h } from "./dom";
-import { routeMap } from "./RouteMap";
 
-function tile(k: string, value: string, unit?: string, cls = ""): HTMLElement {
+function effortBadge(intensity: number): HTMLElement {
+  const color =
+    intensity <= 3
+      ? "var(--z2)"
+      : intensity <= 5
+        ? "var(--z3)"
+        : intensity <= 7
+          ? "var(--power)"
+          : intensity <= 8
+            ? "var(--z6)"
+            : "var(--hr)";
+  const badge = h("span", { class: "effort-badge" }, `Intensität ${intensity}/10`);
+  badge.style.color = color;
+  badge.style.borderColor = color;
+  return badge;
+}
+
+function heroStats(items: Array<[string, string, string?]>): HTMLElement {
   return h(
     "div",
-    { class: "tile " + cls },
-    h("div", { class: "k" }, k),
-    h(
-      "div",
-      { class: "tile-value" },
-      value,
-      unit ? h("span", { class: "u" }, unit) : null,
+    { class: "hero-stats" },
+    ...items.map(([label, value, unit]) =>
+      h(
+        "div",
+        { class: "hstat" },
+        h(
+          "div",
+          { class: "v" },
+          value,
+          unit ? h("span", { class: "u" }, unit) : null,
+        ),
+        h("div", { class: "l" }, label),
+      ),
     ),
   );
 }
 
-function intensityRow(intensity: number): HTMLElement {
-  const bars: HTMLElement[] = [];
-  for (let i = 1; i <= 10; i++) {
-    bars.push(h("span", { class: "bar" + (i <= intensity ? " on" : "") }));
-  }
+/** Zeile nur behalten, wenn ein echter Wert vorliegt. */
+function row(k: string, v: string): [string, string] | null {
+  return v === "–" || v === "" ? null : [k, v];
+}
+
+function statList(
+  rows: Array<[string, string] | null>,
+  accent = "",
+): HTMLElement | null {
+  const r = rows.filter((x): x is [string, string] => x !== null);
+  if (!r.length) return null;
   return h(
     "div",
-    { class: "intensity" },
-    ...bars,
-    h("span", { class: "label" }, `Intensität ${intensity}/10`),
+    { class: ("stat-list " + accent).trim() },
+    ...r.map(([k, v]) =>
+      h(
+        "div",
+        { class: "stat-row" },
+        h("span", { class: "k" }, k),
+        h("span", { class: "v" }, v),
+      ),
+    ),
   );
 }
 
@@ -123,56 +157,70 @@ export function activityCard(
   const head = h(
     "div",
     { class: "card-head" },
+    h("div", { class: "hero-title" }, a.name),
     h(
       "div",
-      { class: "meta" },
+      { class: "hero-meta" },
       `${sportLabel(a.sport)} · ${fmtDate(a.startTime)}` +
         (m.tempAvg !== undefined ? ` · ${n0(m.tempAvg)} °C` : ""),
     ),
-    h("div", { class: "fazit" }, a.name),
-    intensityRow(m.intensity),
+    effortBadge(m.intensity),
   );
 
-  const tiles = h(
-    "div",
-    { class: "tiles" },
-    tile("Distanz", fmtKm(m.distanceM).replace(" km", ""), "km"),
-    tile("Fahrzeit", fmtDuration(m.durationMovingS)),
-    tile("Ø Tempo", m.avgSpeed ? fmtKmh(m.avgSpeed).replace(" km/h", "") : "–", "km/h"),
-    tile("Höhenmeter", n0(m.elevGain), "hm"),
-    tile("Ø Leistung", n0(m.avgPower), "W", "power"),
-    tile("NP", n0(m.np), "W", "power"),
-    tile("IF", n2(m.if), "", "power"),
-    tile("TSS", n0(m.tss), "", "power"),
-    tile("VI", n2(m.vi), "", "power"),
-    tile("Ø Puls", n0(m.avgHr), "bpm", "hr"),
-    tile("Max Puls", n0(m.maxHr), "bpm", "hr"),
-    tile("Ø Trittf.", n0(m.avgCadence), "rpm"),
-    tile("W/kg (NP)", n1(m.wPerKgNp)),
-    tile("kcal", n0(m.kcal)),
-  );
+  // Stufe 1: Hero-Zahlen
+  const hero = heroStats([
+    ["Distanz", fmtKm(m.distanceM).replace(" km", ""), "km"],
+    ["Höhenmeter", n0(m.elevGain), "hm"],
+    ["Fahrzeit", fmtDuration(m.durationMovingS)],
+  ]);
 
-  const card = h(
-    "div",
-    { class: "panel" },
-    head,
-    tiles,
-    h("h2", { style: { marginTop: "14px" } }, "Verlauf"),
-    drawTimeline(a, profile),
-  );
+  const card = h("div", { class: "panel" }, head, hero);
 
+  // Stufe 2: Route direkt unter den Hero-Zahlen (nur mit GPS)
+  const route = drawRoute(a);
+  if (route) card.append(h("h2", { class: "section" }, "Route"), route);
+
+  // Stufe 2: Verlauf
+  card.append(h("h2", { class: "section" }, "Verlauf"), drawTimeline(a, profile));
+
+  // Stufe 2: Leistung (Amber-Akzent)
+  const power = statList(
+    [
+      row("Ø Leistung", m.avgPower !== undefined ? n0(m.avgPower) + " W" : "–"),
+      row("Normalized Power", m.np !== undefined ? n0(m.np) + " W" : "–"),
+      row("Intensity Factor", n2(m.if)),
+      row("TSS", n0(m.tss)),
+      row("Variabilität (VI)", n2(m.vi)),
+      row("W/kg (NP)", n1(m.wPerKgNp)),
+      row("Kalorien", m.kcal !== undefined ? n0(m.kcal) + " kcal" : "–"),
+    ],
+    "power",
+  );
+  if (power) card.append(h("h2", { class: "section" }, "Leistung"), power);
+
+  // Stufe 2: Zonen
   const zones = drawZones(a);
-  if (zones) {
-    card.append(h("h2", { style: { marginTop: "14px" } }, "Zonen"), zones);
-  }
+  if (zones) card.append(h("h2", { class: "section" }, "Zonen"), zones);
+
+  // Stufe 3: Herzfrequenz & mehr (dezent)
+  const detail = statList(
+    [
+      row("Ø Puls", m.avgHr !== undefined ? n0(m.avgHr) + " bpm" : "–"),
+      row("Max Puls", m.maxHr !== undefined ? n0(m.maxHr) + " bpm" : "–"),
+      row("Ø Trittfrequenz", m.avgCadence !== undefined ? n0(m.avgCadence) + " rpm" : "–"),
+      row("Ø Tempo", m.avgSpeed !== undefined ? fmtKmh(m.avgSpeed) : "–"),
+      row("Max Tempo", m.maxSpeed !== undefined ? fmtKmh(m.maxSpeed) : "–"),
+      row("Temperatur", m.tempAvg !== undefined ? n0(m.tempAvg) + " °C" : "–"),
+    ],
+    "hr",
+  );
+  if (detail)
+    card.append(h("h2", { class: "section" }, "Herzfrequenz & mehr"), detail);
 
   card.append(feedbackBlock(a, prev));
   card.append(coachBlock(a, profile, prev));
 
-  const map = routeMap(a);
-
   const wrap = h("div", {}, card);
-  if (map) wrap.append(map);
 
   if (handlers.onDelete) {
     const del = h(
