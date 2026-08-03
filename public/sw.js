@@ -3,7 +3,7 @@
 // Navigationsanfragen fallen offline auf die gecachte index.html zurück.
 // Cross-origin (Anthropic API, Dropbox, Kartentiles) wird NICHT angefasst.
 
-const CACHE = "rava-v1";
+const CACHE = "rava-v3";
 
 self.addEventListener("install", (event) => {
   event.waitUntil(
