@@ -2,13 +2,33 @@ import type { Activity, Profile, ZoneModel } from "../model";
 import { fmtDuration } from "../format";
 import { h } from "./dom";
 
-// Farbkonzept-Tokens (Spiegel von styles.css :root) – Canvas kennt kein CSS-var.
+// Farbkonzept-Tokens. Canvas kennt keine CSS-Variablen, daher lesen die
+// neutralen (theme-abhängigen) Farben zur Zeichenzeit live aus :root – so
+// folgen die Diagramme dem Hell/Dunkel-Umschalter. Marke, Signal und
+// Datenfarben sind in beiden Themes gleich und bleiben konstant.
+function cssVar(name: string, fallback: string): string {
+  if (typeof document === "undefined") return fallback;
+  const v = getComputedStyle(document.documentElement)
+    .getPropertyValue(name)
+    .trim();
+  return v || fallback;
+}
 const COL = {
-  bg: "#0b0e17",
-  panel: "#171b33",
-  line: "#2b3160",
-  text: "#eef1f8",
-  muted: "#9aa3b8",
+  get bg() {
+    return cssVar("--bg", "#0b0e17");
+  },
+  get panel() {
+    return cssVar("--panel", "#171b33");
+  },
+  get line() {
+    return cssVar("--line", "#2b3160");
+  },
+  get text() {
+    return cssVar("--text", "#eef1f8");
+  },
+  get muted() {
+    return cssVar("--muted", "#9aa3b8");
+  },
   accent: "#4a54ff", // Marke – Indigo-500
   attention: "#ff5a2e", // Signal – Coral
   power: "#f2a93b",

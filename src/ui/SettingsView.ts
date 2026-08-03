@@ -12,8 +12,11 @@ import {
   COACH_MODELS,
   getApiKey,
   getCoachModel,
+  getTheme,
   setApiKey,
   setCoachModel,
+  setTheme,
+  type Theme,
 } from "../state/settings";
 import { clear, h } from "./dom";
 
@@ -26,9 +29,39 @@ export function settingsView(
   (async () => {
     const apiKey = (await getApiKey()) ?? "";
     const model = await getCoachModel();
+    const theme = await getTheme();
     const settings = await getSettings();
     const dbx = settings.dropbox ?? {};
     const connected = await isConnected();
+
+    // ---- Darstellung (Hell/Dunkel) ----
+    const seg = h("div", { class: "seg" });
+    const mkTheme = (val: Theme, label: string): HTMLElement => {
+      const b = h("button", { class: val === theme ? "on" : "" }, label);
+      b.addEventListener("click", async () => {
+        await setTheme(val);
+        for (const c of Array.from(seg.children)) {
+          c.classList.toggle("on", c === b);
+        }
+      });
+      return b;
+    };
+    seg.append(mkTheme("dark", "Dunkel"), mkTheme("light", "Hell"));
+
+    root.append(
+      h(
+        "div",
+        { class: "panel" },
+        h("h2", {}, "Darstellung"),
+        h("label", {}, "Farbschema"),
+        seg,
+        h(
+          "div",
+          { class: "muted", style: { marginTop: "8px" } },
+          "Wählt zwischen dunkler und heller Fläche. Marken- und Datenfarben bleiben in beiden gleich. Die Wahl gilt sofort und wird lokal gespeichert.",
+        ),
+      ),
+    );
 
     // ---- Coach / API-Key ----
     const keyInput = h("input", {

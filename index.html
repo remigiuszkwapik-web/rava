@@ -21,6 +21,18 @@
     <link rel="icon" href="./icons/icon-192.png" sizes="192x192" type="image/png" />
     <link rel="apple-touch-icon" href="./icons/icon-180.png" />
     <title>Rava</title>
+    <!-- Theme früh setzen (aus localStorage-Spiegel), damit nichts aufblitzt.
+         Die verbindliche Wahl lädt danach main.ts aus IndexedDB. -->
+    <script>
+      try {
+        var t = localStorage.getItem("rava-theme");
+        if (t === "light" || t === "dark") {
+          document.documentElement.dataset.theme = t;
+          var m = document.querySelector('meta[name="theme-color"]');
+          if (m && t === "light") m.setAttribute("content", "#eef0f5");
+        }
+      } catch (e) {}
+    </script>
   </head>
   <body>
     <div id="app"></div>
