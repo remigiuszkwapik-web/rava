@@ -21,7 +21,6 @@ export function defaultProfileSeed(): Omit<Profile, "id" | "createdAt"> {
     ftp: 210,
     maxHr: 190,
     restHr: undefined,
-    thresholdHr: undefined,
     age: undefined,
     setupNotes: undefined,
   };

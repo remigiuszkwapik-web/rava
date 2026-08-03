@@ -29,7 +29,6 @@ function payload(a: Activity, profile: Profile, prev?: Activity) {
       ftp: profile.ftp,
       gewicht_kg: profile.weightKg,
       max_hf: profile.maxHr,
-      schwellen_hf: profile.thresholdHr,
     },
     einheit: {
       sportart: a.sport,
