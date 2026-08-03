@@ -9,6 +9,7 @@ import {
   setActiveProfile,
   updateProfile,
 } from "./state/profile";
+import { applyTheme, getTheme } from "./state/settings";
 import { swipeDeck } from "./ui/SwipeDeck";
 import { compareView } from "./ui/CompareView";
 import { clear, h } from "./ui/dom";
@@ -167,6 +168,7 @@ async function autoSyncDropbox(): Promise<void> {
   } catch (e) {
     console.warn("Dropbox-Redirect:", e);
   }
+  applyTheme(await getTheme());
   await loadData();
   render();
   void autoSyncDropbox();

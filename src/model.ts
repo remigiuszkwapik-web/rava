@@ -118,6 +118,7 @@ export interface Settings {
   activeProfileId?: string;
   anthropicApiKey?: string;
   coachModel?: string;
+  theme?: "dark" | "light";
   dropbox?: {
     appKey?: string; // vom Nutzer angelegte Dropbox-App (client_id)
     accessToken?: string;

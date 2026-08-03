@@ -2,15 +2,38 @@ import type { Activity, Profile, ZoneModel } from "../model";
 import { fmtDuration } from "../format";
 import { h } from "./dom";
 
+// Farbkonzept-Tokens. Canvas kennt keine CSS-Variablen, daher lesen die
+// neutralen (theme-abhängigen) Farben zur Zeichenzeit live aus :root – so
+// folgen die Diagramme dem Hell/Dunkel-Umschalter. Marke, Signal und
+// Datenfarben sind in beiden Themes gleich und bleiben konstant.
+function cssVar(name: string, fallback: string): string {
+  if (typeof document === "undefined") return fallback;
+  const v = getComputedStyle(document.documentElement)
+    .getPropertyValue(name)
+    .trim();
+  return v || fallback;
+}
 const COL = {
-  bg: "#0E1116",
-  panel: "#151B23",
-  line: "#232C38",
-  text: "#E6EDF3",
-  muted: "#8B97A7",
-  power: "#F2A93B",
-  hr: "#E5484D",
-  draft: "#3FB8AF",
+  get bg() {
+    return cssVar("--bg", "#0b0e17");
+  },
+  get panel() {
+    return cssVar("--panel", "#171b33");
+  },
+  get line() {
+    return cssVar("--line", "#2b3160");
+  },
+  get text() {
+    return cssVar("--text", "#eef1f8");
+  },
+  get muted() {
+    return cssVar("--muted", "#9aa3b8");
+  },
+  accent: "#4a54ff", // Marke – Indigo-500
+  attention: "#ff5a2e", // Signal – Coral
+  power: "#f2a93b",
+  hr: "#e5484d",
+  draft: "#3fb8af",
 };
 const POWER_ZONE_COLORS = [
   "#3a6ea5",
