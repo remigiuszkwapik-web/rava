@@ -101,7 +101,7 @@ export function drawTimeline(a: Activity, profile: Profile): HTMLCanvasElement {
     const maxH = hrDef.length ? Math.max(...hrDef) + 5 : 1;
     const yH = (v: number) => padT + (1 - (v - minH) / (maxH - minH)) * (hgt - padT - padB);
 
-    // Phasen-Bänder
+    // Phasen-Bänder (Füllung)
     for (const ph of a.phases) {
       const x0 = x(ph.startT);
       const x1 = Math.max(x0 + 2, x(ph.endT));
@@ -112,12 +112,24 @@ export function drawTimeline(a: Activity, profile: Profile): HTMLCanvasElement {
             ? "rgba(63,184,175,0.14)"
             : "rgba(229,72,77,0.14)";
       ctx.fillRect(x0, padT, x1 - x0, hgt - padT - padB);
-      ctx.fillStyle = COL.muted;
-      ctx.font = "10px system-ui";
-      ctx.fillText(ph.label, x0 + 3, padT + 11);
     }
 
-    // FTP-Linie
+    // Phasen-Beschriftung: nur breite, nicht überlappende Bänder beschriften
+    ctx.font = "10px system-ui";
+    ctx.fillStyle = COL.muted;
+    let lastRight = -Infinity;
+    for (const ph of a.phases) {
+      const x0 = x(ph.startT);
+      const x1 = Math.max(x0 + 2, x(ph.endT));
+      if (x1 - x0 < 40) continue; // zu schmal → kein Text (verhindert Brei)
+      if (x0 < lastRight + 8) continue; // würde vorheriges Label überlappen
+      const tw = ctx.measureText(ph.label).width;
+      if (x0 + 3 + tw > w - padR) continue; // läuft rechts raus
+      ctx.fillText(ph.label, x0 + 3, padT + 11);
+      lastRight = x0 + 3 + tw;
+    }
+
+    // FTP-Linie (Beschriftung rechts, weg vom Phasen-Cluster links)
     if (profile.ftp) {
       const y = yP(profile.ftp);
       ctx.strokeStyle = COL.draft;
@@ -130,7 +142,8 @@ export function drawTimeline(a: Activity, profile: Profile): HTMLCanvasElement {
       ctx.setLineDash([]);
       ctx.fillStyle = COL.draft;
       ctx.font = "10px system-ui";
-      ctx.fillText("FTP " + profile.ftp + " W", padL + 2, y - 3);
+      const lbl = "FTP " + profile.ftp + " W";
+      ctx.fillText(lbl, w - padR - ctx.measureText(lbl).width, y - 4);
     }
 
     // Leistung
