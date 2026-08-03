@@ -1,9 +1,12 @@
 :root {
-  --bg: #0e1116;
-  --panel: #151b23;
-  --line: #232c38;
-  --text: #e6edf3;
-  --muted: #8b97a7;
+  --bg: #0b0e17;
+  --panel: #141827;
+  --line: #262c40;
+  --text: #eef1f8;
+  --muted: #9aa3b8;
+  --accent: #3b41f5;
+  --accent-press: #2e33d6;
+  --on-accent: #ffffff;
   --power: #f2a93b;
   --hr: #e5484d;
   --draft: #3fb8af;
@@ -14,7 +17,7 @@
   --z5: #f2a93b;
   --z6: #ef7d43;
   --z7: #e5484d;
-  --radius: 14px;
+  --radius: 20px;
   --gap: 12px;
   color-scheme: dark;
 }
@@ -64,7 +67,7 @@ td.num {
   align-items: center;
   gap: var(--gap);
   padding: max(10px, env(safe-area-inset-top)) 14px 10px;
-  background: rgba(14, 17, 22, 0.9);
+  background: rgba(11, 14, 23, 0.9);
   backdrop-filter: blur(8px);
   border-bottom: 1px solid var(--line);
 }
@@ -72,6 +75,7 @@ td.num {
   font-weight: 800;
   letter-spacing: 2px;
   margin-right: auto;
+  color: var(--accent);
 }
 .topbar select,
 .topbar button {
@@ -100,9 +104,9 @@ td.num {
   white-space: nowrap;
 }
 .nav button.active {
-  color: var(--text);
-  border-color: var(--line);
-  background: var(--panel);
+  color: var(--on-accent);
+  border-color: var(--accent);
+  background: var(--accent);
 }
 
 main {
@@ -143,9 +147,15 @@ textarea {
   background: var(--bg);
   color: var(--text);
   border: 1px solid var(--line);
-  border-radius: 10px;
-  padding: 10px;
+  border-radius: 12px;
+  padding: 11px;
   font: inherit;
+}
+input:focus,
+select:focus,
+textarea:focus {
+  outline: none;
+  border-color: var(--accent);
 }
 .row {
   display: grid;
@@ -153,23 +163,26 @@ textarea {
   gap: var(--gap);
 }
 button.primary {
-  background: var(--power);
-  color: #1a1205;
+  background: var(--accent);
+  color: var(--on-accent);
   border: none;
-  border-radius: 12px;
-  padding: 12px 16px;
+  border-radius: 999px;
+  padding: 13px 16px;
   font: inherit;
   font-weight: 700;
   cursor: pointer;
   width: 100%;
   margin-top: 14px;
 }
+button.primary:active {
+  background: var(--accent-press);
+}
 button.ghost {
   background: transparent;
   color: var(--text);
   border: 1px solid var(--line);
-  border-radius: 12px;
-  padding: 10px 14px;
+  border-radius: 999px;
+  padding: 11px 14px;
   font: inherit;
   cursor: pointer;
 }
@@ -197,17 +210,25 @@ button.ghost {
   color: var(--text);
 }
 
-/* ---- Dashboard: Kopf ---- */
+/* ---- Dashboard: Hero-Block (kräftig eingefärbt) ---- */
+.hero-block {
+  background: linear-gradient(160deg, #4b4ff7 0%, #3b41f5 55%, #2c31d6 100%);
+  border-radius: var(--radius);
+  padding: 18px;
+  color: #fff;
+  margin-bottom: var(--gap);
+}
 .card-head {
   margin-bottom: 4px;
 }
 .hero-title {
-  font-size: 22px;
-  font-weight: 700;
+  font-size: 23px;
+  font-weight: 800;
   line-height: 1.2;
+  color: #fff;
 }
 .hero-meta {
-  color: var(--muted);
+  color: rgba(255, 255, 255, 0.72);
   font-size: 13px;
   margin-top: 4px;
 }
@@ -215,46 +236,48 @@ button.ghost {
   display: inline-block;
   margin-top: 12px;
   padding: 4px 12px;
-  border: 1px solid var(--line);
+  border: none;
   border-radius: 999px;
   font-size: 12px;
-  font-weight: 600;
-  background: rgba(255, 255, 255, 0.03);
+  font-weight: 700;
+  color: #fff;
+  background: rgba(255, 255, 255, 0.18);
 }
 
 /* ---- Dashboard: Hero-Zahlen (Stufe 1) ---- */
 .hero-stats {
   display: flex;
-  margin-top: 16px;
+  margin-top: 18px;
 }
 .hstat {
   flex: 1;
   min-width: 0;
   text-align: center;
   padding: 0 6px;
-  border-left: 1px solid var(--line);
+  border-left: 1px solid rgba(255, 255, 255, 0.22);
 }
 .hstat:first-child {
   border-left: none;
 }
 .hstat .v {
-  font-size: 26px;
+  font-size: 30px;
   font-weight: 800;
   line-height: 1.1;
   font-variant-numeric: tabular-nums;
+  color: #fff;
 }
 .hstat .v .u {
-  font-size: 13px;
+  font-size: 14px;
   font-weight: 600;
-  color: var(--muted);
+  color: rgba(255, 255, 255, 0.72);
   margin-left: 3px;
 }
 .hstat .l {
   font-size: 11px;
   text-transform: uppercase;
   letter-spacing: 0.5px;
-  color: var(--muted);
-  margin-top: 3px;
+  color: rgba(255, 255, 255, 0.72);
+  margin-top: 4px;
 }
 
 /* ---- Abschnittsüberschriften mit Trenner ---- */
