@@ -108,7 +108,6 @@ export interface Profile {
   ftp?: number;
   maxHr?: number;
   restHr?: number;
-  thresholdHr?: number;
   age?: number;
   setupNotes?: string;
   createdAt: number;

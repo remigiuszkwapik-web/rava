@@ -19,7 +19,6 @@ export function profileForm(
   const ftp = h("input", { type: "number", value: initial.ftp ?? "" });
   const maxHr = h("input", { type: "number", value: initial.maxHr ?? "" });
   const restHr = h("input", { type: "number", value: initial.restHr ?? "" });
-  const thrHr = h("input", { type: "number", value: initial.thresholdHr ?? "" });
   const age = h("input", { type: "number", value: initial.age ?? "" });
   const notes = h("textarea", { rows: "2" }) as HTMLTextAreaElement;
   notes.value = initial.setupNotes ?? "";
@@ -37,7 +36,6 @@ export function profileForm(
       ftp: numOrUndef(ftp.value),
       maxHr: numOrUndef(maxHr.value),
       restHr: numOrUndef(restHr.value),
-      thresholdHr: numOrUndef(thrHr.value),
       age: numOrUndef(age.value),
       setupNotes: notes.value.trim() || undefined,
     });
@@ -60,12 +58,8 @@ export function profileForm(
       h("div", {}, h("label", {}, "Max. HF (bpm)"), maxHr),
       h("div", {}, h("label", {}, "Ruhe-HF – für HRR-Zonen"), restHr),
     ),
-    h(
-      "div",
-      { class: "row" },
-      h("div", {}, h("label", {}, "HF-Schwelle (bpm)"), thrHr),
-      h("div", {}, h("label", {}, "Alter"), age),
-    ),
+    h("label", {}, "Alter"),
+    age,
     h("label", {}, "Rad-/Setup-Notizen"),
     notes,
     err,
