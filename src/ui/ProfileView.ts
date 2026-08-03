@@ -58,7 +58,7 @@ export function profileForm(
       "div",
       { class: "row" },
       h("div", {}, h("label", {}, "Max. HF (bpm)"), maxHr),
-      h("div", {}, h("label", {}, "Ruhe-HF (bpm)"), restHr),
+      h("div", {}, h("label", {}, "Ruhe-HF – für HRR-Zonen"), restHr),
     ),
     h(
       "div",
