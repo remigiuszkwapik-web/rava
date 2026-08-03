@@ -84,7 +84,7 @@ function normalizedPower(power1hz: number[]): number | undefined {
   return Math.round(Math.pow(p4, 0.25));
 }
 
-function powerZoneModel(ftp: number, power: (number | undefined)[]): ZoneModel {
+export function powerZoneModel(ftp: number, power: (number | undefined)[]): ZoneModel {
   const fr = [0.55, 0.75, 0.9, 1.05, 1.2, 1.5, Infinity];
   const labels = ["Z1", "Z2", "Z3", "Z4", "Z5", "Z6", "Z7"];
   const bounds = fr.map((f) => (f === Infinity ? Infinity : Math.round(f * ftp)));
@@ -101,15 +101,26 @@ function powerZoneModel(ftp: number, power: (number | undefined)[]): ZoneModel {
   return { seconds, bounds, labels };
 }
 
-function hrZoneModel(maxHr: number, hr: (number | undefined)[]): ZoneModel {
+/**
+ * HF-Zonen. Mit Ruhepuls → %HRR (Karvonen): Grenze = rest + f·(max−rest).
+ * Ohne Ruhepuls → Fallback %Maxpuls.
+ */
+export function hrZoneModel(
+  maxHr: number,
+  restHr: number | undefined,
+  hr: (number | undefined)[],
+): ZoneModel {
   const fr = [0.6, 0.7, 0.8, 0.9, 1.01];
   const labels = ["Z1", "Z2", "Z3", "Z4", "Z5"];
-  const bounds = fr.map((f) => Math.round(f * maxHr));
+  const useHrr = restHr !== undefined && restHr > 0 && restHr < maxHr;
+  const bound = (f: number): number =>
+    useHrr ? Math.round(restHr! + f * (maxHr - restHr!)) : Math.round(f * maxHr);
+  const bounds = fr.map(bound);
   const seconds = new Array(fr.length).fill(0);
   for (const h of hr) {
     if (h === undefined || h <= 0) continue;
     for (let z = 0; z < fr.length; z++) {
-      if (h <= fr[z] * maxHr) {
+      if (h <= bounds[z]) {
         seconds[z]++;
         break;
       }
@@ -267,7 +278,7 @@ export function computeMetrics(
       m.maxHr = Math.max(...hrs);
     }
     const maxHrRef = profile.maxHr ?? m.maxHr;
-    if (maxHrRef) m.hrZones = hrZoneModel(maxHrRef, rs.hr);
+    if (maxHrRef) m.hrZones = hrZoneModel(maxHrRef, profile.restHr, rs.hr);
   }
 
   // Trittfrequenz (bewegt & > 0)

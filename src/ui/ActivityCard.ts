@@ -1,4 +1,5 @@
 import { buildFeedback } from "../analysis/feedback";
+import { hrZoneModel, powerZoneModel } from "../analysis/metrics";
 import {
   fmtDate,
   fmtDuration,
@@ -152,6 +153,16 @@ export function activityCard(
   handlers: ActivityCardHandlers = {},
 ): HTMLElement {
   const m = a.metrics;
+
+  // Zonen mit dem aktuellen Profil neu berechnen, damit Modell-/Wert-Änderungen
+  // (z. B. HRR/Ruhepuls) auch für bereits importierte Fahrten sofort greifen.
+  m.powerZones = profile.ftp
+    ? powerZoneModel(profile.ftp, a.samples.map((s) => s.power))
+    : undefined;
+  const maxHrRef = profile.maxHr ?? m.maxHr;
+  m.hrZones = maxHrRef
+    ? hrZoneModel(maxHrRef, profile.restHr, a.samples.map((s) => s.hr))
+    : undefined;
 
   const head = h(
     "div",
