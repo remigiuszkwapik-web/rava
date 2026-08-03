@@ -1,13 +1,48 @@
 :root {
+  /* ==========================================================================
+     RAVA – Farbkonzept (detailliert)
+     Referenz: vivider Royal-Blau/Indigo-Look mit Coral als Signalfarbe.
+     Aufbau in vier Ebenen:
+       1) Marke   – Indigo-Rampe (hell → tief)
+       2) Signal  – Coral (Aufmerksamkeit / Rückgang)
+       3) Neutral – Flächen & Text (Dark)
+       4) Daten   – Leistung, Puls, Zonen
+     Bausteine (Rampe/Signal/Daten) sind die Wahrheit; die Rollen-Tokens
+     (--accent, --attention …) bilden darauf ab. UI-Regeln immer über Rollen.
+     ========================================================================== */
+
+  /* 1) Marke – Indigo-Rampe */
+  --indigo-50: #eef0ff; /* zarte Labels auf Dunkel */
+  --indigo-200: #c3c8ff;
+  --indigo-300: #9aa2ff; /* Sekundär-Akzent (Lavendel) */
+  --indigo-400: #6f78ff;
+  --indigo-500: #4a54ff; /* Primär – vivides Royal-Blau (Hero-Oberkante) */
+  --indigo-600: #3b41f5; /* Primär, Flächen */
+  --indigo-700: #2e33d6; /* tief – Hero-Boden, gedrückt */
+  --indigo-900: #1b1f4d; /* Hintergrund-Wash oben */
+
+  /* 2) Signal – Coral */
+  --coral-soft: #ff8a63;
+  --coral: #ff5a2e; /* „76 % geringer als gestern“ */
+  --coral-deep: #e5431c;
+
+  /* 3) Neutral – Fläche & Text */
   --bg: #0b0e17;
+  --bg-2: #0f1327;
   --panel: #171b33;
+  --panel-2: #1d2242;
   --line: #2b3160;
   --text: #eef1f8;
   --muted: #9aa3b8;
-  --accent-soft: #aab2ff;
-  --accent: #3b41f5;
-  --accent-press: #2e33d6;
   --on-accent: #ffffff;
+
+  /* Rollen – auf Rampe/Signal abgebildet (in Regeln diese verwenden) */
+  --accent: var(--indigo-500);
+  --accent-press: var(--indigo-700);
+  --accent-soft: var(--indigo-300);
+  --attention: var(--coral);
+
+  /* 4) Daten – Leistung, Puls, Zonen */
   --power: #f2a93b;
   --hr: #e5484d;
   --draft: #3fb8af;
@@ -18,6 +53,7 @@
   --z5: #f2a93b;
   --z6: #ef7d43;
   --z7: #e5484d;
+
   --radius: 20px;
   --gap: 12px;
   color-scheme: dark;
@@ -36,12 +72,12 @@ body {
 
 body {
   background: var(--bg);
-  /* Durchgehender Indigo-Wash: oben satt, nach unten ins Dunkle */
+  /* Durchgehender Indigo-Wash: oben satt (Marke), nach unten ins Dunkle */
   background-image: linear-gradient(
     180deg,
-    #1b1f4d 0%,
+    var(--indigo-900) 0%,
     #12163a 22%,
-    #0b0e17 55%
+    var(--bg) 55%
   );
   background-attachment: fixed;
   color: var(--text);
@@ -200,7 +236,7 @@ button.ghost {
   font-size: 13px;
 }
 .error {
-  color: var(--hr);
+  color: var(--attention);
   font-size: 13px;
   margin-top: 8px;
 }
@@ -215,13 +251,19 @@ button.ghost {
   cursor: pointer;
 }
 .drop.hover {
-  border-color: var(--power);
+  border-color: var(--attention);
   color: var(--text);
 }
 
 /* ---- Dashboard: Hero-Block (kräftig eingefärbt) ---- */
 .hero-block {
-  background: linear-gradient(160deg, #4b4ff7 0%, #3b41f5 55%, #2c31d6 100%);
+  /* Vivides Royal-Blau der Referenz: hell oben → tiefes Indigo unten */
+  background: linear-gradient(
+    165deg,
+    var(--indigo-500) 0%,
+    var(--indigo-600) 52%,
+    var(--indigo-700) 100%
+  );
   border-radius: var(--radius);
   padding: 18px;
   color: #fff;

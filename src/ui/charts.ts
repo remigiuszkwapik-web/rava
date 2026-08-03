@@ -2,15 +2,18 @@ import type { Activity, Profile, ZoneModel } from "../model";
 import { fmtDuration } from "../format";
 import { h } from "./dom";
 
+// Farbkonzept-Tokens (Spiegel von styles.css :root) – Canvas kennt kein CSS-var.
 const COL = {
-  bg: "#0E1116",
-  panel: "#151B23",
-  line: "#232C38",
-  text: "#E6EDF3",
-  muted: "#8B97A7",
-  power: "#F2A93B",
-  hr: "#E5484D",
-  draft: "#3FB8AF",
+  bg: "#0b0e17",
+  panel: "#171b33",
+  line: "#2b3160",
+  text: "#eef1f8",
+  muted: "#9aa3b8",
+  accent: "#4a54ff", // Marke – Indigo-500
+  attention: "#ff5a2e", // Signal – Coral
+  power: "#f2a93b",
+  hr: "#e5484d",
+  draft: "#3fb8af",
 };
 const POWER_ZONE_COLORS = [
   "#3a6ea5",
