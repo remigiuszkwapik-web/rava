@@ -482,6 +482,23 @@ h2.section {
   color: var(--hr);
 }
 
+/* ---- Kontext: Notiz & Wetter ---- */
+.context-item {
+  display: flex;
+  gap: 10px;
+  padding: 7px 0;
+  border-bottom: 1px solid var(--line);
+  font-size: 14px;
+}
+.context-item:last-child {
+  border-bottom: none;
+}
+.context-label {
+  color: var(--muted);
+  flex: none;
+  min-width: 64px;
+}
+
 canvas {
   width: 100%;
   display: block;

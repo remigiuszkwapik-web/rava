@@ -22,6 +22,8 @@ const GLOSSARY: Record<string, string> = {
   tss: "Training Stress Score (TSS): Gesamtbelastung aus Dauer und Intensität. 100 entspricht etwa einer harten Stunde an der Schwelle (FTP).",
   vi: "Variabilität (VI): NP geteilt durch die Durchschnittsleistung. Nahe 1,0 = sehr gleichmäßig getreten, höher = viele Antritte und Pausen.",
   wkg: "W/kg: Leistung pro Kilogramm Körpergewicht (auf Basis der NP) – macht die Leistung unabhängig vom Gewicht vergleichbar.",
+  aerob: "Aerober Anteil: Zeit in den unteren Puls-Zonen (Z1–Z2), also im gut aeroben Grundlagenbereich. Da nur der Puls zählt, ist der Wert auch für Gruppenfahrten aussagekräftig.",
+  decoupling: "Aerobes Decoupling (Leistung:Puls): Drift von Leistung zu Puls von der 1. zur 2. Hälfte. Unter ~5 % = gute aerobe Ausdauer; höher deutet auf Ermüdung, dünne Grundlage oder Hitze hin. Sinnvoll nur bei gleichmäßigen Solo-Fahrten – bei Gruppenfahrten verfälscht der Windschatten Leistung/Puls, daher wird Decoupling dort nicht angezeigt.",
 };
 
 function effortBadge(intensity: number): HTMLElement {
@@ -283,6 +285,30 @@ export function activityDetail(
   const heroBlock = h("div", { class: "hero-block" }, head, hero);
   const card = h("div", { class: "panel" }, heroBlock);
 
+  // Notiz & Wetter aus dem Upload-Kontext (falls angegeben)
+  if (a.context && (a.context.weather || a.context.notes)) {
+    const block = h("div", { class: "context-block" });
+    if (a.context.weather)
+      block.append(
+        h(
+          "div",
+          { class: "context-item" },
+          h("span", { class: "context-label" }, "Wetter"),
+          h("span", {}, a.context.weather),
+        ),
+      );
+    if (a.context.notes)
+      block.append(
+        h(
+          "div",
+          { class: "context-item" },
+          h("span", { class: "context-label" }, "Notiz"),
+          h("span", {}, a.context.notes),
+        ),
+      );
+    card.append(h("h2", { class: "section" }, "Notiz & Wetter"), block);
+  }
+
   // Stufe 2: Route (nur mit GPS)
   const route = drawRoute(a);
   if (route) card.append(h("h2", { class: "section" }, "Route"), route);
@@ -323,6 +349,29 @@ export function activityDetail(
   );
   if (detail)
     card.append(h("h2", { class: "section" }, "Herzfrequenz & mehr"), detail);
+
+  // Aerobe Ausdauer: „Aerober Anteil" (windschatten-robust, alle Fahrten) +
+  // Decoupling (aus Leistung UND Puls berechnet; bei Gruppenfahrten verfälscht
+  // → dort ausgeblendet).
+  const isGroup = a.context?.group === "group";
+  let aerobShare = "–";
+  if (m.hrZones && m.hrZones.seconds.length >= 2) {
+    const total = m.hrZones.seconds.reduce((s, x) => s + x, 0);
+    if (total > 0)
+      aerobShare =
+        n0(((m.hrZones.seconds[0] + m.hrZones.seconds[1]) / total) * 100) + " %";
+  }
+  const aerob = statList([
+    row("Aerober Anteil", aerobShare, "aerob"),
+    isGroup
+      ? null
+      : row(
+          "Decoupling",
+          m.decoupling !== undefined ? n1(m.decoupling) + " %" : "–",
+          "decoupling",
+        ),
+  ]);
+  if (aerob) card.append(h("h2", { class: "section" }, "Aerobe Ausdauer"), aerob);
 
   card.append(feedbackBlock(a, prev));
   card.append(coachBlock(a, profile, prev));
