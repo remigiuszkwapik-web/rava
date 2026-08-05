@@ -1,16 +1,7 @@
 import { ingestFile, type IngestResult } from "../import/ingest";
 import type { ContextAnswers, Profile } from "../model";
+import { factorChips, TYPE_OPTIONS } from "./contextForm";
 import { clear, h } from "./dom";
-
-const TYPE_OPTIONS: [ContextAnswers["type"], string][] = [
-  ["endurance", "Grundlage"],
-  ["intervals", "Intervalle"],
-  ["race", "Rennen"],
-  ["recovery", "Rekom"],
-  ["climb", "Berg"],
-  ["commute", "Pendeln"],
-  ["other", "Sonstiges"],
-];
 
 /**
  * Wiederverwendbares „Add Ride“-Panel: Dropzone + Import-Logik.
@@ -106,16 +97,19 @@ export function addRidePanel(
     const rpeOut = h("span", { class: "muted" }, " 5");
     rpe.addEventListener("input", () => (rpeOut.textContent = " " + rpe.value));
     const weather = h("input", { type: "text", placeholder: "z. B. windig, 12 °C" }) as HTMLInputElement;
-    const notes = h("input", { type: "text", placeholder: "Notiz" }) as HTMLInputElement;
+    const notes = h("input", { type: "text", placeholder: "Freitext für alles, was kein Chip abdeckt" }) as HTMLInputElement;
+    const chips = factorChips();
 
     const btn = h("button", { class: "primary" }, "Analysieren");
     btn.addEventListener("click", () => {
+      const factors = chips.read();
       const context: ContextAnswers = {
         group: (group.value || undefined) as ContextAnswers["group"],
         type: (type.value || undefined) as ContextAnswers["type"],
         rpe: Number(rpe.value),
         weather: weather.value.trim() || undefined,
         notes: notes.value.trim() || undefined,
+        factors: factors.length ? factors : undefined,
       };
       runImport(file, context);
     });
@@ -125,9 +119,11 @@ export function addRidePanel(
         "div",
         { class: "panel" },
         h("h2", {}, `Kontext zu „${file.name}"`),
-        h("div", { class: "row" }, h("div", {}, h("label", {}, "Allein / Gruppe"), group), h("div", {}, h("label", {}, "Art"), type)),
+        h("div", { class: "row" }, h("div", {}, h("label", {}, "Allein / Gruppe"), group), h("div", {}, h("label", {}, "Ziel der Fahrt"), type)),
         h("label", {}, "Anstrengung (RPE)", rpeOut),
         rpe,
+        h("label", {}, "Faktoren"),
+        chips.el,
         h("div", { class: "row" }, h("div", {}, h("label", {}, "Wetter"), weather), h("div", {}, h("label", {}, "Notiz"), notes)),
         btn,
       ),

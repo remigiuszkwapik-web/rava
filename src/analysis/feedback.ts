@@ -1,5 +1,6 @@
 import { fmtDuration, fmtKm, n0, n1, n2 } from "../format";
 import type { Activity, ZoneModel } from "../model";
+import { factorLabel } from "../ui/contextForm";
 import { hardestClimb } from "./segments";
 
 export interface Feedback {
@@ -57,11 +58,22 @@ export function buildFeedback(
   const climb = hardestClimb(a.phases);
   const surges = a.phases.filter((p) => p.kind === "surge").length;
 
+  // Angeklickte Kontext-Faktoren – zur Einordnung der Kennzahlen.
+  const F = new Set(a.context?.factors ?? []);
+  const has = (k: string) => F.has(k);
+  // Windschatten verfälscht Leistung/Puls (Decoupling, VI): Gruppenfahrt ODER
+  // unterwegs angeschlossen ODER explizit „viel Windschatten“.
+  const draftHeavy =
+    a.context?.group === "group" || has("joined-group") || has("much-draft");
+  // Erwarteter Einbruch in der 2. Hälfte (durch Nutzer gemeldet).
+  const fade = has("fade-2nd") || has("bonk") || has("cramp");
+
   // ---- 1. Fazit ----
   const bits: string[] = [];
   if (climb) bits.push("mit kräftigem Anstieg");
   else if (surges >= 3) bits.push(`mit ${surges} Antritten`);
   if (a.context?.group === "group") bits.push("in der Gruppe");
+  else if (has("joined-group")) bits.push("unterwegs in einer Gruppe");
   const fazit =
     `${characterWord(m.intensity)} ${bits.join(", ")}`.trim() +
     ` über ${fmtKm(m.distanceM)} (${fmtDuration(m.durationMovingS)}).`;
@@ -92,12 +104,19 @@ export function buildFeedback(
     );
   }
 
+  const fadeReason = has("bonk")
+    ? " – passt zum gemeldeten Hungerast."
+    : has("cramp")
+      ? " – passt zu den gemeldeten Krämpfen."
+      : has("fade-2nd")
+        ? " – deckt sich mit dem gemeldeten Einbruch."
+        : "";
   const hs = halfSplit(a);
   if (hs.p1 && hs.p2) {
     const diff = Math.round(((hs.p2 - hs.p1) / hs.p1) * 100);
     analyse.push(
       diff <= -8
-        ? `Pacing: zweite Hälfte deutlich schwächer (${diff} %) – Einbruch zum Ende.`
+        ? `Pacing: zweite Hälfte deutlich schwächer (${diff} %) – Einbruch zum Ende${fadeReason || "."}`
         : diff >= 8
           ? `Pacing: negativ gesplittet, zweite Hälfte stärker (+${diff} %). Stark.`
           : `Pacing: gleichmäßig über beide Hälften (${diff >= 0 ? "+" : ""}${diff} %).`,
@@ -105,22 +124,46 @@ export function buildFeedback(
   } else if (hs.s1 && hs.s2) {
     const diff = Math.round(((hs.s2 - hs.s1) / hs.s1) * 100);
     analyse.push(
-      `Pacing (Tempo): zweite Hälfte ${diff >= 0 ? "+" : ""}${diff} % ggü. erster.`,
+      `Pacing (Tempo): zweite Hälfte ${diff >= 0 ? "+" : ""}${diff} % ggü. erster.` +
+        (has("wind-mixed") || has("wind-tail") || has("wind-head")
+          ? " Bei wechselndem/starkem Wind ist der Tempo-Split nur bedingt aussagekräftig."
+          : ""),
     );
   }
 
   if (climb) analyse.push(`Härtester Abschnitt: ${climb.label}.`);
 
-  // Decoupling bei Gruppenfahrten weglassen – Windschatten verzerrt Leistung/Puls.
-  if (m.decoupling !== undefined && a.context?.group !== "group") {
+  // Decoupling bei viel Windschatten weglassen – verzerrt Leistung/Puls.
+  if (m.decoupling !== undefined && !draftHeavy) {
+    const highReason = has("heat")
+      ? "die gemeldete Hitze"
+      : fade
+        ? "der gemeldete Einbruch (Hunger/Krämpfe)"
+        : has("tired-start") || has("sick")
+          ? "der angeschlagene/vorbelastete Start"
+          : "Ermüdung/Hitze/wenig Grundlage";
     analyse.push(
       m.decoupling >= 8
-        ? `Kardiovaskuläres Decoupling ${n1(m.decoupling)} % – HF driftet bei gleicher Leistung nach oben (Ermüdung/Hitze/wenig Grundlage).`
+        ? `Kardiovaskuläres Decoupling ${n1(m.decoupling)} % – HF driftet bei gleicher Leistung nach oben (${highReason}).`
         : m.decoupling <= -3
           ? `Decoupling ${n1(m.decoupling)} % – Effizienz stieg im Verlauf (gutes Einfahren).`
           : `Decoupling ${n1(m.decoupling)} % – aerob stabil, gute Ausdauerbasis.`,
     );
+  } else if (m.decoupling !== undefined && draftHeavy) {
+    analyse.push(
+      "Decoupling ausgeblendet – bei viel Windschatten (Gruppe/Anschluss) verzerrt der Windschatten das Leistung-zu-Puls-Verhältnis.",
+    );
   }
+  if (has("long-stops"))
+    analyse.push(
+      "Viele Stopps/Ampeln gemeldet – hohe Variabilität und niedriger Ø-Schnitt sind dadurch mit erklärt.",
+    );
+  if (a.context?.factors?.length)
+    analyse.push(
+      "Kontext berücksichtigt: " +
+        a.context.factors.map(factorLabel).join(", ") +
+        ".",
+    );
   if (!analyse.length)
     analyse.push("Wenige Datenkanäle vorhanden – Analyse auf Basis von Zeit/Distanz.");
 
@@ -129,10 +172,18 @@ export function buildFeedback(
   if (m.maxPower) heraus.push(`Spitzenleistung ${n0(m.maxPower)} W.`);
   if (climb) heraus.push(`Sauber durchgezogener Anstieg (${climb.label}).`);
   if (hs.p1 && hs.p2 && hs.p2 >= hs.p1) heraus.push("Kraft bis zum Schluss gehalten.");
-  if (m.decoupling !== undefined && m.decoupling >= 10 && a.context?.group !== "group")
-    heraus.push("Draufschauen: hohes Decoupling – evtl. zu hart angefangen oder unterversorgt.");
+  if (m.decoupling !== undefined && m.decoupling >= 10 && !draftHeavy)
+    heraus.push(
+      fade || has("heat") || has("tired-start") || has("sick")
+        ? "Hohes Decoupling – durch den gemeldeten Kontext (Einbruch/Hitze/vorbelastet) erklärbar, nicht zwingend ein Trainingsproblem."
+        : "Draufschauen: hohes Decoupling – evtl. zu hart angefangen oder unterversorgt.",
+    );
   if (m.avgHr && m.avgPower && m.if && m.if < 0.6 && m.avgHr > (a.metrics.maxHr ?? 999) * 0.8)
-    heraus.push("Draufschauen: hohe HF bei niedriger Leistung – Müdigkeit/Hitze?");
+    heraus.push(
+      has("tired-start") || has("sick") || has("heat")
+        ? "Hohe HF bei niedriger Leistung – passt zum gemeldeten Zustand (vorbelastet/angeschlagen/Hitze)."
+        : "Draufschauen: hohe HF bei niedriger Leistung – Müdigkeit/Hitze?",
+    );
   for (const miss of m.missing) heraus.push(`Hinweis: ${miss}.`);
   if (!heraus.length) heraus.push("Runde, unauffällige Einheit ohne Ausreißer.");
 
@@ -152,6 +203,10 @@ export function buildFeedback(
     cmp("NP", m.np, prev.metrics.np, " W");
     cmp("Ø-HF", m.avgHr, prev.metrics.avgHr, " bpm", "down");
     cmp("Ø-Tempo", m.avgSpeed ? m.avgSpeed * 3.6 : undefined, prev.metrics.avgSpeed ? prev.metrics.avgSpeed * 3.6 : undefined, " km/h");
+    if (has("wind-tail") || has("wind-head") || has("wind-mixed") || draftHeavy)
+      vergleich.push(
+        "Achtung: Wind/Windschatten gemeldet – Tempo- und Leistungsvergleich nur mit Vorsicht deuten.",
+      );
   }
 
   // ---- 6. Empfehlung ----

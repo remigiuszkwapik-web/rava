@@ -1,4 +1,4 @@
-import type { Activity, Profile } from "../model";
+import type { Activity, ContextAnswers, Profile } from "../model";
 import { activityDetail } from "./ActivityCard";
 import { h } from "./dom";
 
@@ -8,6 +8,8 @@ export interface RidesViewHandlers {
   onView: (a: Activity) => void;
   /** Fahrt umbenennen (persistiert + Re-Render). */
   onRename: (a: Activity, name: string) => void;
+  /** Kontext (Gruppe, Ziel, Wetter, Faktoren, Notiz) ändern (persistiert + Re-Render). */
+  onContextChange: (a: Activity, ctx: ContextAnswers) => void;
 }
 
 const SLIDE_GAP = 12; // muss zu .deck { gap } in styles.css passen
@@ -66,7 +68,13 @@ export function ridesView(
     const slide = h(
       "div",
       { class: "slide" },
-      activityDetail(a, profile, prev, (name) => handlers.onRename(a, name)),
+      activityDetail(
+        a,
+        profile,
+        prev,
+        (name) => handlers.onRename(a, name),
+        (ctx) => handlers.onContextChange(a, ctx),
+      ),
     );
     const del = h(
       "button",

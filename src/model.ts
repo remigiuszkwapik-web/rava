@@ -37,6 +37,8 @@ export interface ContextAnswers {
   rpe?: number; // 1..10
   weather?: string;
   notes?: string;
+  /** Angeklickte Kontext-Faktoren (stabile Keys aus FACTORS, s. ui/contextForm). */
+  factors?: string[];
 }
 
 /** Automatisch erkannte Phase (für Chart-Bänder & Text). */
