@@ -22,7 +22,7 @@ const GLOSSARY: Record<string, string> = {
   tss: "Training Stress Score (TSS): Gesamtbelastung aus Dauer und Intensität. 100 entspricht etwa einer harten Stunde an der Schwelle (FTP).",
   vi: "Variabilität (VI): NP geteilt durch die Durchschnittsleistung. Nahe 1,0 = sehr gleichmäßig getreten, höher = viele Antritte und Pausen.",
   wkg: "W/kg: Leistung pro Kilogramm Körpergewicht (auf Basis der NP) – macht die Leistung unabhängig vom Gewicht vergleichbar.",
-  aerob: "Aerober Anteil: Zeit in den unteren Puls-Zonen (Z1–Z2), also im gut aeroben Grundlagenbereich. Da nur der Puls zählt, ist der Wert auch für Gruppenfahrten aussagekräftig.",
+  aerob: "Aerober Anteil: Zeit in den unteren Puls-Zonen (Z1–Z2), also im gut aeroben Grundlagenbereich. Ein hoher Wert steht für eine ruhige Grundlagenfahrt (Fettstoffwechsel, Regeneration, Ausdauerbasis), ein niedriger für viel Tempo-/Schwellenarbeit. Kein Wert ist per se besser – er zeigt, ob die Fahrt zum Ziel der Einheit gepasst hat: hoch bei Grundlage/Recovery, niedrig bei Intervall-/Tempoeinheiten. Der Wert ergänzt die Gesamtintensität, denn Dauer und einzelne harte Spitzen können sie hochtreiben, obwohl der Puls überwiegend niedrig blieb.",
   decoupling: "Aerobes Decoupling (Leistung:Puls): Drift von Leistung zu Puls von der 1. zur 2. Hälfte. Unter ~5 % = gute aerobe Ausdauer; höher deutet auf Ermüdung, dünne Grundlage oder Hitze hin. Sinnvoll nur bei gleichmäßigen Solo-Fahrten – bei Gruppenfahrten verfälscht der Windschatten Leistung/Puls, daher wird Decoupling dort nicht angezeigt.",
 };
 
