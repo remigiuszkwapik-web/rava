@@ -7,7 +7,8 @@ import {
   setFolder,
 } from "../import/dropbox";
 import type { Profile } from "../model";
-import { getSettings } from "../state/db";
+import { buildRiderProfileText } from "../analysis/riderProfile";
+import { getActivities, getSettings } from "../state/db";
 import {
   COACH_MODELS,
   getApiKey,
@@ -97,6 +98,54 @@ export function settingsView(
           "div",
           { class: "muted", style: { marginTop: "8px" } },
           "Der Key wird nur lokal im Browser gespeichert und direkt an Anthropic gesendet. Für die persönliche Nutzung gedacht – teile keine Installation mit fremdem Key.",
+        ),
+      ),
+    );
+
+    // ---- Fahrerprofil-Export ----
+    const profileText = buildRiderProfileText(profile, await getActivities(profile.id));
+    const ta = h("textarea", {
+      readonly: "readonly",
+      rows: String(Math.min(20, profileText.split("\n").length + 1)),
+      style: {
+        width: "100%",
+        fontFamily: "monospace",
+        fontSize: "12px",
+        whiteSpace: "pre",
+        resize: "vertical",
+      },
+    }) as HTMLTextAreaElement;
+    ta.value = profileText;
+    const copyStatus = h("span", { class: "muted" });
+    const copyBtn = h("button", { class: "ghost" }, "Kopieren");
+    copyBtn.addEventListener("click", async () => {
+      try {
+        await navigator.clipboard.writeText(ta.value);
+      } catch {
+        // Fallback für Browser ohne Clipboard-API / unsicheren Kontext
+        ta.focus();
+        ta.select();
+        document.execCommand("copy");
+      }
+      copyStatus.textContent = " kopiert";
+    });
+
+    root.append(
+      h(
+        "div",
+        { class: "panel" },
+        h("h2", {}, "Fahrerprofil (Export)"),
+        ta,
+        h(
+          "div",
+          { style: { display: "flex", gap: "8px", alignItems: "center", marginTop: "8px" } },
+          copyBtn,
+          copyStatus,
+        ),
+        h(
+          "div",
+          { class: "muted", style: { marginTop: "8px" } },
+          "Kompakte Zusammenfassung deiner Leistungs- und Formdaten zum Einfügen in Claude o. Ä. – z. B. zusammen mit einer geplanten GPX-Route, um dir einen Pacing-/Berg-Fahrplan erstellen zu lassen.",
         ),
       ),
     );
