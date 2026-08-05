@@ -6,6 +6,8 @@ export interface RidesViewHandlers {
   onDelete: (a: Activity) => void;
   /** Merkt sich die gerade sichtbare Fahrt (ohne Re-Render). */
   onView: (a: Activity) => void;
+  /** Fahrt umbenennen (persistiert + Re-Render). */
+  onRename: (a: Activity, name: string) => void;
 }
 
 const SLIDE_GAP = 12; // muss zu .deck { gap } in styles.css passen
@@ -61,7 +63,11 @@ export function ridesView(
   const deck = h("div", { class: "deck" });
   activities.forEach((a, i) => {
     const prev = activities[i + 1];
-    const slide = h("div", { class: "slide" }, activityDetail(a, profile, prev));
+    const slide = h(
+      "div",
+      { class: "slide" },
+      activityDetail(a, profile, prev, (name) => handlers.onRename(a, name)),
+    );
     const del = h(
       "button",
       { class: "ghost", style: { width: "100%", marginBottom: "12px" } },

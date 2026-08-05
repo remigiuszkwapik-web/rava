@@ -8,7 +8,13 @@ import "@fontsource/inter/900.css";
 import { handleRedirect, fetchNewFiles, isConnected } from "./import/dropbox";
 import { ingestDropboxFiles } from "./import/ingest";
 import type { Activity, Profile } from "./model";
-import { deleteActivity, deleteProfile, getActivities, getProfiles } from "./state/db";
+import {
+  deleteActivity,
+  deleteProfile,
+  getActivities,
+  getProfiles,
+  putActivity,
+} from "./state/db";
 import {
   createProfile,
   getActiveProfile,
@@ -198,6 +204,15 @@ function content(): HTMLElement {
         // damit die horizontale Scroll-Position erhalten bleibt.
         onView: (a) => {
           selectedActivityId = a.id;
+        },
+        onRename: async (a, name) => {
+          const trimmed = name.trim();
+          if (!trimmed || trimmed === a.name) return;
+          a.name = trimmed;
+          await putActivity(a);
+          selectedActivityId = a.id;
+          await loadData();
+          render();
         },
       });
     case "analyze":

@@ -349,6 +349,51 @@ button.ghost {
   line-height: 1.2;
   color: #fff;
 }
+/* Bearbeitbarer Fahrtname (auf dem Tinte-Hero) */
+.hero-title-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+}
+.hero-title-row .hero-title {
+  flex: 1;
+  min-width: 0;
+}
+.title-edit {
+  flex: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 30px;
+  padding: 0;
+  margin-top: 1px;
+  border: none;
+  border-radius: 9px;
+  background: rgba(255, 255, 255, 0.16);
+  color: #fff;
+  font-size: 15px;
+  line-height: 1;
+  cursor: pointer;
+}
+.title-edit:active {
+  background: rgba(255, 255, 255, 0.28);
+}
+.hero-block .title-input {
+  width: 100%;
+  font-size: 22px;
+  font-weight: 800;
+  line-height: 1.2;
+  padding: 6px 10px;
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.14);
+  border: 1px solid rgba(255, 255, 255, 0.5);
+  color: #fff;
+}
+.hero-block .title-input:focus {
+  outline: none;
+  border-color: #fff;
+}
 .hero-meta {
   color: rgba(255, 255, 255, 0.72);
   font-size: 13px;

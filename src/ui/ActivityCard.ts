@@ -174,14 +174,76 @@ function coachBlock(a: Activity, profile: Profile, prev?: Activity): HTMLElement
 }
 
 /**
+ * Bearbeitbarer Fahrtname: zeigt den Namen mit Stift-Button; ein Klick macht
+ * daraus ein Eingabefeld (Enter/Blur speichert, Esc bricht ab).
+ */
+function editableTitle(
+  name: string,
+  onRename: (name: string) => void,
+): HTMLElement {
+  const wrap = h("div", { class: "hero-title-row" });
+
+  const showDisplay = () => {
+    const title = h("div", { class: "hero-title" }, name);
+    const edit = h("button", {
+      class: "title-edit",
+      type: "button",
+      title: "Umbenennen",
+      "aria-label": "Namen bearbeiten",
+    });
+    edit.textContent = "✎";
+    edit.addEventListener("click", beginEdit);
+    wrap.replaceChildren(title, edit);
+  };
+
+  function beginEdit() {
+    const input = h("input", {
+      class: "title-input",
+      type: "text",
+    }) as HTMLInputElement;
+    input.value = name;
+    wrap.replaceChildren(input);
+    input.focus();
+    input.select();
+
+    let settled = false;
+    const finish = (save: boolean) => {
+      if (settled) return;
+      settled = true;
+      const v = input.value.trim();
+      if (save && v && v !== name) {
+        onRename(v); // löst Reload + Re-Render in main aus
+      } else {
+        showDisplay(); // Anzeige unverändert wiederherstellen
+      }
+    };
+    input.addEventListener("keydown", (e) => {
+      if (e.key === "Enter") {
+        e.preventDefault();
+        finish(true);
+      } else if (e.key === "Escape") {
+        e.preventDefault();
+        finish(false);
+      }
+    });
+    input.addEventListener("blur", () => finish(true));
+  }
+
+  showDisplay();
+  return wrap;
+}
+
+/**
  * Vollständige Detailansicht einer Fahrt – alle Kennzahlen vertikal
  * untereinander (Hero, Route, Verlauf, Leistung, Zonen, Puls, Fazit, Coach).
  * Wird im Rides-Reiter je Fahrt als eine (horizontal wischbare) Karte gezeigt.
+ * Mit `onRename` wird der Name direkt in der Karte bearbeitbar.
  */
 export function activityDetail(
   a: Activity,
   profile: Profile,
   prev?: Activity,
+  onRename?: (name: string) => void,
 ): HTMLElement {
   const m = a.metrics;
 
@@ -195,10 +257,13 @@ export function activityDetail(
     ? hrZoneModel(maxHrRef, profile.restHr, a.samples.map((s) => s.hr))
     : undefined;
 
+  const title = onRename
+    ? editableTitle(a.name, onRename)
+    : h("div", { class: "hero-title" }, a.name);
   const head = h(
     "div",
     { class: "card-head" },
-    h("div", { class: "hero-title" }, a.name),
+    title,
     h(
       "div",
       { class: "hero-meta" },
