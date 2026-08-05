@@ -15,6 +15,15 @@ import { getApiKey, getCoachModel } from "../state/settings";
 import { drawRoute, drawTimeline, drawZones } from "./charts";
 import { clear, h } from "./dom";
 
+/** Kurzerklärungen zu Fachbegriffen (Info-Icon in den Kennzahlen). */
+const GLOSSARY: Record<string, string> = {
+  np: "Normalized Power (NP): gewichtete Durchschnittsleistung, die kurze harte Abschnitte stärker berücksichtigt als der reine Mittelwert – näher am tatsächlich empfundenen Aufwand.",
+  if: "Intensity Factor (IF): NP im Verhältnis zur FTP. 1,0 = eine Stunde am Limit, ~0,7 lockere Grundlage.",
+  tss: "Training Stress Score (TSS): Gesamtbelastung aus Dauer und Intensität. 100 entspricht etwa einer harten Stunde an der Schwelle (FTP).",
+  vi: "Variabilität (VI): NP geteilt durch die Durchschnittsleistung. Nahe 1,0 = sehr gleichmäßig getreten, höher = viele Antritte und Pausen.",
+  wkg: "W/kg: Leistung pro Kilogramm Körpergewicht (auf Basis der NP) – macht die Leistung unabhängig vom Gewicht vergleichbar.",
+};
+
 function effortBadge(intensity: number): HTMLElement {
   const color =
     intensity <= 3
@@ -51,29 +60,52 @@ function heroStats(items: Array<[string, string, string?]>): HTMLElement {
   );
 }
 
+/** [Bezeichnung, Wert, optional: Glossar-Schlüssel für das Info-Icon]. */
+type StatRow = [string, string, string?];
+
 /** Zeile nur behalten, wenn ein echter Wert vorliegt. */
-function row(k: string, v: string): [string, string] | null {
-  return v === "–" || v === "" ? null : [k, v];
+function row(k: string, v: string, info?: string): StatRow | null {
+  return v === "–" || v === "" ? null : [k, v, info];
+}
+
+/** Kleines Info-Icon, das eine Kurzerklärung ein-/ausblendet. */
+function infoIcon(term: string, tip: HTMLElement): HTMLButtonElement {
+  const btn = h("button", {
+    class: "info-btn",
+    type: "button",
+    title: "Erklärung",
+    "aria-label": `Erklärung zu ${term}`,
+  }) as HTMLButtonElement;
+  btn.textContent = "i";
+  btn.addEventListener("click", () => {
+    const show = tip.hidden;
+    tip.hidden = !show;
+    btn.classList.toggle("on", show);
+  });
+  return btn;
 }
 
 function statList(
-  rows: Array<[string, string] | null>,
+  rows: Array<StatRow | null>,
   accent = "",
 ): HTMLElement | null {
-  const r = rows.filter((x): x is [string, string] => x !== null);
+  const r = rows.filter((x): x is StatRow => x !== null);
   if (!r.length) return null;
-  return h(
-    "div",
-    { class: ("stat-list " + accent).trim() },
-    ...r.map(([k, v]) =>
-      h(
-        "div",
-        { class: "stat-row" },
-        h("span", { class: "k" }, k),
-        h("span", { class: "v" }, v),
-      ),
-    ),
-  );
+  const list = h("div", { class: ("stat-list " + accent).trim() });
+  for (const [k, v, info] of r) {
+    const key = h("span", { class: "k" }, k);
+    let tip: HTMLElement | null = null;
+    if (info && GLOSSARY[info]) {
+      tip = h("div", { class: "info-text" }, GLOSSARY[info]);
+      tip.hidden = true;
+      key.append(infoIcon(k, tip));
+    }
+    list.append(
+      h("div", { class: "stat-row" }, key, h("span", { class: "v" }, v)),
+    );
+    if (tip) list.append(tip);
+  }
+  return list;
 }
 
 function feedbackBlock(a: Activity, prev?: Activity): HTMLElement {
@@ -139,10 +171,6 @@ function coachBlock(a: Activity, profile: Profile, prev?: Activity): HTMLElement
     }
   });
   return h("div", {}, btn, out);
-}
-
-export interface ActivityCardHandlers {
-  onDelete?: (a: Activity) => void;
 }
 
 export interface RideSection {
@@ -214,11 +242,11 @@ export function activitySections(
   const power = statList(
     [
       row("Ø Leistung", m.avgPower !== undefined ? n0(m.avgPower) + " W" : "–"),
-      row("Normalized Power", m.np !== undefined ? n0(m.np) + " W" : "–"),
-      row("Intensity Factor", n2(m.if)),
-      row("TSS", n0(m.tss)),
-      row("Variabilität (VI)", n2(m.vi)),
-      row("W/kg (NP)", n1(m.wPerKgNp)),
+      row("Normalized Power", m.np !== undefined ? n0(m.np) + " W" : "–", "np"),
+      row("Intensity Factor", n2(m.if), "if"),
+      row("TSS", n0(m.tss), "tss"),
+      row("Variabilität (VI)", n2(m.vi), "vi"),
+      row("W/kg (NP)", n1(m.wPerKgNp), "wkg"),
       row("Kalorien", m.kcal !== undefined ? n0(m.kcal) + " kcal" : "–"),
     ],
     "power",
@@ -257,105 +285,4 @@ export function activitySections(
   });
 
   return sections;
-}
-
-export function activityCard(
-  a: Activity,
-  profile: Profile,
-  prev: Activity | undefined,
-  handlers: ActivityCardHandlers = {},
-): HTMLElement {
-  const m = a.metrics;
-
-  // Zonen mit dem aktuellen Profil neu berechnen, damit Modell-/Wert-Änderungen
-  // (z. B. HRR/Ruhepuls) auch für bereits importierte Fahrten sofort greifen.
-  m.powerZones = profile.ftp
-    ? powerZoneModel(profile.ftp, a.samples.map((s) => s.power))
-    : undefined;
-  const maxHrRef = profile.maxHr ?? m.maxHr;
-  m.hrZones = maxHrRef
-    ? hrZoneModel(maxHrRef, profile.restHr, a.samples.map((s) => s.hr))
-    : undefined;
-
-  const head = h(
-    "div",
-    { class: "card-head" },
-    h("div", { class: "hero-title" }, a.name),
-    h(
-      "div",
-      { class: "hero-meta" },
-      fmtDate(a.startTime) +
-        (m.tempAvg !== undefined ? ` · ${n0(m.tempAvg)} °C` : ""),
-    ),
-    effortBadge(m.intensity),
-  );
-
-  // Stufe 1: Hero-Zahlen
-  const hero = heroStats([
-    ["Distanz", fmtKm(m.distanceM).replace(" km", ""), "km"],
-    ["Höhenmeter", n0(m.elevGain), "hm"],
-    ["Fahrzeit", fmtDuration(m.durationMovingS)],
-  ]);
-
-  const heroBlock = h("div", { class: "hero-block" }, head, hero);
-  const card = h("div", { class: "panel" }, heroBlock);
-
-  // Stufe 2: Route direkt unter den Hero-Zahlen (nur mit GPS)
-  const route = drawRoute(a);
-  if (route) card.append(h("h2", { class: "section" }, "Route"), route);
-
-  // Stufe 2: Verlauf
-  card.append(h("h2", { class: "section" }, "Verlauf"), drawTimeline(a, profile));
-
-  // Stufe 2: Leistung (Amber-Akzent)
-  const power = statList(
-    [
-      row("Ø Leistung", m.avgPower !== undefined ? n0(m.avgPower) + " W" : "–"),
-      row("Normalized Power", m.np !== undefined ? n0(m.np) + " W" : "–"),
-      row("Intensity Factor", n2(m.if)),
-      row("TSS", n0(m.tss)),
-      row("Variabilität (VI)", n2(m.vi)),
-      row("W/kg (NP)", n1(m.wPerKgNp)),
-      row("Kalorien", m.kcal !== undefined ? n0(m.kcal) + " kcal" : "–"),
-    ],
-    "power",
-  );
-  if (power) card.append(h("h2", { class: "section" }, "Leistung"), power);
-
-  // Stufe 2: Zonen
-  const zones = drawZones(a);
-  if (zones) card.append(h("h2", { class: "section" }, "Zonen"), zones);
-
-  // Stufe 3: Herzfrequenz & mehr (dezent)
-  const detail = statList(
-    [
-      row("Ø Puls", m.avgHr !== undefined ? n0(m.avgHr) + " bpm" : "–"),
-      row("Max Puls", m.maxHr !== undefined ? n0(m.maxHr) + " bpm" : "–"),
-      row("Ø Trittfrequenz", m.avgCadence !== undefined ? n0(m.avgCadence) + " rpm" : "–"),
-      row("Ø Tempo", m.avgSpeed !== undefined ? fmtKmh(m.avgSpeed) : "–"),
-      row("Max Tempo", m.maxSpeed !== undefined ? fmtKmh(m.maxSpeed) : "–"),
-      row("Temperatur", m.tempAvg !== undefined ? n0(m.tempAvg) + " °C" : "–"),
-    ],
-    "hr",
-  );
-  if (detail)
-    card.append(h("h2", { class: "section" }, "Herzfrequenz & mehr"), detail);
-
-  card.append(feedbackBlock(a, prev));
-  card.append(coachBlock(a, profile, prev));
-
-  const wrap = h("div", {}, card);
-
-  if (handlers.onDelete) {
-    const del = h(
-      "button",
-      { class: "ghost", style: { width: "100%", marginBottom: "12px" } },
-      "Aktivität löschen",
-    );
-    del.addEventListener("click", () => {
-      if (confirm("Diese Aktivität löschen?")) handlers.onDelete!(a);
-    });
-    wrap.append(del);
-  }
-  return wrap;
 }

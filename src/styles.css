@@ -671,3 +671,40 @@ progress {
   color: var(--muted);
   margin: 0 0 10px;
 }
+
+/* ---- Info-Icon + Kurzerklärung zu Fachbegriffen ---- */
+.info-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 16px;
+  height: 16px;
+  margin-left: 6px;
+  padding: 0;
+  border: 1px solid var(--muted);
+  border-radius: 50%;
+  background: transparent;
+  color: var(--muted);
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: 11px;
+  font-style: italic;
+  font-weight: 700;
+  line-height: 1;
+  cursor: pointer;
+  vertical-align: middle;
+  flex: none;
+}
+.info-btn.on {
+  border-color: var(--accent);
+  background: var(--accent);
+  color: var(--on-accent);
+}
+.info-text {
+  color: var(--muted);
+  font-size: 13px;
+  line-height: 1.45;
+  padding: 10px 12px;
+  margin: 4px 0 6px;
+  background: var(--panel-2);
+  border-radius: 12px;
+}
