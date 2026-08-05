@@ -111,7 +111,8 @@ export function buildFeedback(
 
   if (climb) analyse.push(`Härtester Abschnitt: ${climb.label}.`);
 
-  if (m.decoupling !== undefined) {
+  // Decoupling bei Gruppenfahrten weglassen – Windschatten verzerrt Leistung/Puls.
+  if (m.decoupling !== undefined && a.context?.group !== "group") {
     analyse.push(
       m.decoupling >= 8
         ? `Kardiovaskuläres Decoupling ${n1(m.decoupling)} % – HF driftet bei gleicher Leistung nach oben (Ermüdung/Hitze/wenig Grundlage).`
@@ -128,7 +129,7 @@ export function buildFeedback(
   if (m.maxPower) heraus.push(`Spitzenleistung ${n0(m.maxPower)} W.`);
   if (climb) heraus.push(`Sauber durchgezogener Anstieg (${climb.label}).`);
   if (hs.p1 && hs.p2 && hs.p2 >= hs.p1) heraus.push("Kraft bis zum Schluss gehalten.");
-  if (m.decoupling !== undefined && m.decoupling >= 10)
+  if (m.decoupling !== undefined && m.decoupling >= 10 && a.context?.group !== "group")
     heraus.push("Draufschauen: hohes Decoupling – evtl. zu hart angefangen oder unterversorgt.");
   if (m.avgHr && m.avgPower && m.if && m.if < 0.6 && m.avgHr > (a.metrics.maxHr ?? 999) * 0.8)
     heraus.push("Draufschauen: hohe HF bei niedriger Leistung – Müdigkeit/Hitze?");
