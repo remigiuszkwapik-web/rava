@@ -1,15 +1,19 @@
 import type { Activity, Profile } from "../model";
-import { activitySections } from "./ActivityCard";
+import { activityDetail } from "./ActivityCard";
 import { h } from "./dom";
 
 export interface RidesViewHandlers {
   onDelete: (a: Activity) => void;
-  onSelect: (a: Activity) => void;
+  /** Merkt sich die gerade sichtbare Fahrt (ohne Re-Render). */
+  onView: (a: Activity) => void;
 }
 
+const SLIDE_GAP = 12; // muss zu .deck { gap } in styles.css passen
+
 /**
- * Rides-Reiter: zeigt eine Fahrt (die aus Home gewählte, sonst die neueste)
- * mit horizontal swipebaren Abschnitten und Punkte-Navigation.
+ * Rides-Reiter: alle Fahrten als horizontal wischbare Karten. Jede Karte zeigt
+ * die Kennzahlen vertikal untereinander. Ein klebriger Indikator oben nennt
+ * beim Scrollen die gerade betrachtete Fahrt.
  */
 export function ridesView(
   activities: Activity[],
@@ -26,77 +30,85 @@ export function ridesView(
     );
   }
 
-  // Aktivitäten sind neueste zuerst.
-  let idx = activities.findIndex((a) => a.id === selectedId);
-  if (idx < 0) idx = 0;
-  const a = activities[idx];
-  const prev = activities[idx + 1];
-
-  const wrap = h("div", {});
-
-  // Fahrt-Wechsler (nur bei mehreren Fahrten): ‹ neuere · Zähler · ältere ›
-  if (activities.length > 1) {
-    const prevBtn = h(
-      "button",
-      { class: "ghost", style: { width: "auto", padding: "8px 16px" } },
-      "‹",
-    );
-    const nextBtn = h(
-      "button",
-      { class: "ghost", style: { width: "auto", padding: "8px 16px" } },
-      "›",
-    );
-    prevBtn.disabled = idx <= 0;
-    nextBtn.disabled = idx >= activities.length - 1;
-    prevBtn.addEventListener("click", () => handlers.onSelect(activities[idx - 1]));
-    nextBtn.addEventListener("click", () => handlers.onSelect(activities[idx + 1]));
-    wrap.append(
-      h(
-        "div",
-        {
-          style: {
-            display: "flex",
-            justifyContent: "space-between",
-            alignItems: "center",
-            marginBottom: "10px",
-          },
-        },
-        prevBtn,
-        h("span", { class: "muted" }, `Fahrt ${idx + 1} / ${activities.length}`),
-        nextBtn,
-      ),
-    );
-  }
-
-  const sections = activitySections(a, profile, prev);
-
-  const deck = h("div", { class: "section-deck" });
-  sections.forEach((s) =>
-    deck.append(h("div", { class: "section-slide" }, s.el)),
+  // Aktivitäten sind neueste zuerst; Start bei der aus Home gewählten Fahrt.
+  const startIdx = Math.max(
+    0,
+    activities.findIndex((a) => a.id === selectedId),
   );
 
-  const dots = h("div", { class: "deck-dots" });
-  sections.forEach((_, i) =>
-    dots.append(h("span", { class: "dot" + (i === 0 ? " on" : "") })),
+  // ---- Klebriger Fahrt-Indikator ----
+  const nameEl = h("span", { class: "ri-name" });
+  const countEl = h("span", { class: "ri-count" });
+  const prevBtn = h("button", {
+    class: "ri-arrow",
+    type: "button",
+    "aria-label": "Neuere Fahrt",
+  });
+  prevBtn.textContent = "‹";
+  const nextBtn = h("button", {
+    class: "ri-arrow",
+    type: "button",
+    "aria-label": "Ältere Fahrt",
+  });
+  nextBtn.textContent = "›";
+  const indicator = h(
+    "div",
+    { class: "ride-indicator" },
+    nameEl,
+    h("div", { class: "ri-nav" }, countEl, prevBtn, nextBtn),
   );
+
+  const deck = h("div", { class: "deck" });
+  activities.forEach((a, i) => {
+    const prev = activities[i + 1];
+    const slide = h("div", { class: "slide" }, activityDetail(a, profile, prev));
+    const del = h(
+      "button",
+      { class: "ghost", style: { width: "100%", marginBottom: "12px" } },
+      "Aktivität löschen",
+    );
+    del.addEventListener("click", () => {
+      if (confirm("Diese Aktivität löschen?")) handlers.onDelete(a);
+    });
+    slide.append(del);
+    deck.append(slide);
+  });
+
+  const pitch = () => deck.clientWidth + SLIDE_GAP;
+  const setActive = (i: number) => {
+    const a = activities[i];
+    if (!a) return;
+    nameEl.textContent = a.name;
+    countEl.textContent = `${i + 1} / ${activities.length}`;
+    prevBtn.disabled = i <= 0;
+    nextBtn.disabled = i >= activities.length - 1;
+  };
+
+  let raf = 0;
   deck.addEventListener("scroll", () => {
-    const i = Math.round(deck.scrollLeft / deck.clientWidth);
-    Array.from(dots.children).forEach((d, j) =>
-      d.classList.toggle("on", j === i),
-    );
+    cancelAnimationFrame(raf);
+    raf = requestAnimationFrame(() => {
+      const i = Math.round(deck.scrollLeft / pitch());
+      setActive(i);
+      if (activities[i]) handlers.onView(activities[i]);
+    });
   });
-
-  wrap.append(deck, dots);
-
-  const del = h(
-    "button",
-    { class: "ghost", style: { width: "100%", marginTop: "6px" } },
-    "Aktivität löschen",
+  prevBtn.addEventListener("click", () =>
+    deck.scrollBy({ left: -pitch(), behavior: "smooth" }),
   );
-  del.addEventListener("click", () => {
-    if (confirm("Diese Aktivität löschen?")) handlers.onDelete(a);
+  nextBtn.addEventListener("click", () =>
+    deck.scrollBy({ left: pitch(), behavior: "smooth" }),
+  );
+
+  const wrap = h("div", {}, indicator, deck);
+
+  setActive(startIdx);
+  requestAnimationFrame(() => {
+    deck.scrollLeft = pitch() * startIdx;
+    // Indikator direkt unter der (klebrigen) Kopfleiste andocken.
+    const tb = document.querySelector(".topbar") as HTMLElement | null;
+    if (tb) indicator.style.top = tb.offsetHeight + "px";
   });
-  wrap.append(del);
 
   return wrap;
 }

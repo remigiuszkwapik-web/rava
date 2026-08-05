@@ -194,9 +194,10 @@ function content(): HTMLElement {
           await loadData();
           render();
         },
-        onSelect: (a) => {
+        // Beim Wischen nur die sichtbare Fahrt merken – kein Re-Render,
+        // damit die horizontale Scroll-Position erhalten bleibt.
+        onView: (a) => {
           selectedActivityId = a.id;
-          render();
         },
       });
     case "analyze":

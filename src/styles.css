@@ -645,31 +645,58 @@ progress {
   background: var(--panel-2);
 }
 
-/* ---- Rides: Abschnitte einer Fahrt als horizontaler Swiper ---- */
-.section-deck {
+/* ---- Rides: klebriger Fahrt-Indikator über dem Swipe-Deck ---- */
+.ride-indicator {
+  position: sticky;
+  top: 0; /* per JS auf die Höhe der Kopfleiste gesetzt */
+  z-index: 8;
   display: flex;
-  gap: var(--gap);
-  overflow-x: auto;
-  scroll-snap-type: x mandatory;
-  -webkit-overflow-scrolling: touch;
-  padding-bottom: 8px;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin: -14px -14px 12px; /* über die main-Polsterung hinaus bis zum Rand */
+  padding: 12px 14px;
+  background: var(--topbar-bg);
+  backdrop-filter: blur(10px);
+  border-bottom: 1px solid var(--line);
 }
-.section-deck > .section-slide {
-  flex: 0 0 100%;
-  scroll-snap-align: center;
+.ride-indicator .ri-name {
+  font-weight: 800;
+  font-size: 15px;
   min-width: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
-.section-slide > .panel {
-  margin-bottom: 0;
+.ride-indicator .ri-nav {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex: none;
 }
-.section-title {
-  text-align: center;
-  font-size: 12px;
-  font-weight: 700;
-  letter-spacing: 0.6px;
-  text-transform: uppercase;
+.ride-indicator .ri-count {
   color: var(--muted);
-  margin: 0 0 10px;
+  font-size: 13px;
+  font-variant-numeric: tabular-nums;
+}
+.ride-indicator .ri-arrow {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 30px;
+  padding: 0;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: var(--panel);
+  color: var(--text);
+  font-size: 18px;
+  line-height: 1;
+  cursor: pointer;
+}
+.ride-indicator .ri-arrow:disabled {
+  opacity: 0.35;
+  cursor: default;
 }
 
 /* ---- Info-Icon + Kurzerklärung zu Fachbegriffen ---- */

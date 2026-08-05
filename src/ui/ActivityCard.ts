@@ -173,23 +173,20 @@ function coachBlock(a: Activity, profile: Profile, prev?: Activity): HTMLElement
   return h("div", {}, btn, out);
 }
 
-export interface RideSection {
-  title: string;
-  el: HTMLElement;
-}
-
 /**
- * Zerlegt eine Fahrt in einzelne, swipebare Abschnitte (je ein Panel).
- * Wird vom Rides-Reiter als horizontaler Swiper dargestellt.
+ * Vollständige Detailansicht einer Fahrt – alle Kennzahlen vertikal
+ * untereinander (Hero, Route, Verlauf, Leistung, Zonen, Puls, Fazit, Coach).
+ * Wird im Rides-Reiter je Fahrt als eine (horizontal wischbare) Karte gezeigt.
  */
-export function activitySections(
+export function activityDetail(
   a: Activity,
   profile: Profile,
   prev?: Activity,
-): RideSection[] {
+): HTMLElement {
   const m = a.metrics;
 
-  // Zonen mit aktuellem Profil neu berechnen (wie in activityCard).
+  // Zonen mit aktuellem Profil neu berechnen, damit Modell-/Wert-Änderungen
+  // (z. B. HRR/Ruhepuls) auch für bereits importierte Fahrten sofort greifen.
   m.powerZones = profile.ftp
     ? powerZoneModel(profile.ftp, a.samples.map((s) => s.power))
     : undefined;
@@ -198,17 +195,6 @@ export function activitySections(
     ? hrZoneModel(maxHrRef, profile.restHr, a.samples.map((s) => s.hr))
     : undefined;
 
-  const sectionPanel = (title: string, ...content: (Node | null)[]) =>
-    h(
-      "div",
-      { class: "panel" },
-      h("div", { class: "section-title" }, title),
-      ...content,
-    );
-
-  const sections: RideSection[] = [];
-
-  // Übersicht: Hero-Block (Titel, Meta, Kennzahlen)
   const head = h(
     "div",
     { class: "card-head" },
@@ -221,24 +207,25 @@ export function activitySections(
     ),
     effortBadge(m.intensity),
   );
+
+  // Stufe 1: Hero-Zahlen
   const hero = heroStats([
     ["Distanz", fmtKm(m.distanceM).replace(" km", ""), "km"],
     ["Höhenmeter", n0(m.elevGain), "hm"],
     ["Fahrzeit", fmtDuration(m.durationMovingS)],
   ]);
-  sections.push({
-    title: "Übersicht",
-    el: h("div", { class: "hero-block" }, head, hero),
-  });
 
+  const heroBlock = h("div", { class: "hero-block" }, head, hero);
+  const card = h("div", { class: "panel" }, heroBlock);
+
+  // Stufe 2: Route (nur mit GPS)
   const route = drawRoute(a);
-  if (route) sections.push({ title: "Route", el: sectionPanel("Route", route) });
+  if (route) card.append(h("h2", { class: "section" }, "Route"), route);
 
-  sections.push({
-    title: "Verlauf",
-    el: sectionPanel("Verlauf", drawTimeline(a, profile)),
-  });
+  // Stufe 2: Verlauf
+  card.append(h("h2", { class: "section" }, "Verlauf"), drawTimeline(a, profile));
 
+  // Stufe 2: Leistung (mit Info-Icons zu den Fachbegriffen)
   const power = statList(
     [
       row("Ø Leistung", m.avgPower !== undefined ? n0(m.avgPower) + " W" : "–"),
@@ -251,12 +238,13 @@ export function activitySections(
     ],
     "power",
   );
-  if (power)
-    sections.push({ title: "Leistung", el: sectionPanel("Leistung", power) });
+  if (power) card.append(h("h2", { class: "section" }, "Leistung"), power);
 
+  // Stufe 2: Zonen
   const zones = drawZones(a);
-  if (zones) sections.push({ title: "Zonen", el: sectionPanel("Zonen", zones) });
+  if (zones) card.append(h("h2", { class: "section" }, "Zonen"), zones);
 
+  // Stufe 3: Herzfrequenz & mehr
   const detail = statList(
     [
       row("Ø Puls", m.avgHr !== undefined ? n0(m.avgHr) + " bpm" : "–"),
@@ -269,20 +257,11 @@ export function activitySections(
     "hr",
   );
   if (detail)
-    sections.push({
-      title: "Herzfrequenz",
-      el: sectionPanel("Herzfrequenz & mehr", detail),
-    });
+    card.append(h("h2", { class: "section" }, "Herzfrequenz & mehr"), detail);
 
-  sections.push({
-    title: "Fazit",
-    el: h("div", { class: "panel" }, feedbackBlock(a, prev)),
-  });
+  card.append(feedbackBlock(a, prev));
+  card.append(coachBlock(a, profile, prev));
 
-  sections.push({
-    title: "Coach",
-    el: sectionPanel("Coach-Kommentar", coachBlock(a, profile, prev)),
-  });
-
-  return sections;
+  return card;
 }
+
