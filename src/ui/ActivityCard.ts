@@ -8,7 +8,6 @@ import {
   n0,
   n1,
   n2,
-  sportLabel,
 } from "../format";
 import { coachComment } from "../llm/coach";
 import type { Activity, Profile } from "../model";
@@ -189,7 +188,7 @@ export function activitySections(
     h(
       "div",
       { class: "hero-meta" },
-      `${sportLabel(a.sport)} · ${fmtDate(a.startTime)}` +
+      fmtDate(a.startTime) +
         (m.tempAvg !== undefined ? ` · ${n0(m.tempAvg)} °C` : ""),
     ),
     effortBadge(m.intensity),
@@ -285,7 +284,7 @@ export function activityCard(
     h(
       "div",
       { class: "hero-meta" },
-      `${sportLabel(a.sport)} · ${fmtDate(a.startTime)}` +
+      fmtDate(a.startTime) +
         (m.tempAvg !== undefined ? ` · ${n0(m.tempAvg)} °C` : ""),
     ),
     effortBadge(m.intensity),
