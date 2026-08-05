@@ -15,21 +15,23 @@ function cssVar(name: string, fallback: string): string {
 }
 const COL = {
   get bg() {
-    return cssVar("--bg", "#0b0e17");
+    return cssVar("--bg", "#f1f1f0");
   },
   get panel() {
-    return cssVar("--panel", "#171b33");
+    return cssVar("--panel", "#ffffff");
   },
   get line() {
-    return cssVar("--line", "#2b3160");
+    return cssVar("--line", "#e4e4e2");
   },
   get text() {
-    return cssVar("--text", "#eef1f8");
+    return cssVar("--text", "#0a0a0a");
   },
   get muted() {
-    return cssVar("--muted", "#9aa3b8");
+    return cssVar("--muted", "#8a8a88");
   },
-  accent: "#4a54ff", // Marke – Indigo-500
+  get accent() {
+    return cssVar("--accent", "#0a0a0a"); // Marke – Tinte (folgt dem Theme)
+  },
   attention: "#ff5a2e", // Signal – Coral
   power: "#f2a93b",
   hr: "#e5484d",

@@ -146,6 +146,120 @@ export interface ActivityCardHandlers {
   onDelete?: (a: Activity) => void;
 }
 
+export interface RideSection {
+  title: string;
+  el: HTMLElement;
+}
+
+/**
+ * Zerlegt eine Fahrt in einzelne, swipebare Abschnitte (je ein Panel).
+ * Wird vom Rides-Reiter als horizontaler Swiper dargestellt.
+ */
+export function activitySections(
+  a: Activity,
+  profile: Profile,
+  prev?: Activity,
+): RideSection[] {
+  const m = a.metrics;
+
+  // Zonen mit aktuellem Profil neu berechnen (wie in activityCard).
+  m.powerZones = profile.ftp
+    ? powerZoneModel(profile.ftp, a.samples.map((s) => s.power))
+    : undefined;
+  const maxHrRef = profile.maxHr ?? m.maxHr;
+  m.hrZones = maxHrRef
+    ? hrZoneModel(maxHrRef, profile.restHr, a.samples.map((s) => s.hr))
+    : undefined;
+
+  const sectionPanel = (title: string, ...content: (Node | null)[]) =>
+    h(
+      "div",
+      { class: "panel" },
+      h("div", { class: "section-title" }, title),
+      ...content,
+    );
+
+  const sections: RideSection[] = [];
+
+  // Übersicht: Hero-Block (Titel, Meta, Kennzahlen)
+  const head = h(
+    "div",
+    { class: "card-head" },
+    h("div", { class: "hero-title" }, a.name),
+    h(
+      "div",
+      { class: "hero-meta" },
+      `${sportLabel(a.sport)} · ${fmtDate(a.startTime)}` +
+        (m.tempAvg !== undefined ? ` · ${n0(m.tempAvg)} °C` : ""),
+    ),
+    effortBadge(m.intensity),
+  );
+  const hero = heroStats([
+    ["Distanz", fmtKm(m.distanceM).replace(" km", ""), "km"],
+    ["Höhenmeter", n0(m.elevGain), "hm"],
+    ["Fahrzeit", fmtDuration(m.durationMovingS)],
+  ]);
+  sections.push({
+    title: "Übersicht",
+    el: h("div", { class: "hero-block" }, head, hero),
+  });
+
+  const route = drawRoute(a);
+  if (route) sections.push({ title: "Route", el: sectionPanel("Route", route) });
+
+  sections.push({
+    title: "Verlauf",
+    el: sectionPanel("Verlauf", drawTimeline(a, profile)),
+  });
+
+  const power = statList(
+    [
+      row("Ø Leistung", m.avgPower !== undefined ? n0(m.avgPower) + " W" : "–"),
+      row("Normalized Power", m.np !== undefined ? n0(m.np) + " W" : "–"),
+      row("Intensity Factor", n2(m.if)),
+      row("TSS", n0(m.tss)),
+      row("Variabilität (VI)", n2(m.vi)),
+      row("W/kg (NP)", n1(m.wPerKgNp)),
+      row("Kalorien", m.kcal !== undefined ? n0(m.kcal) + " kcal" : "–"),
+    ],
+    "power",
+  );
+  if (power)
+    sections.push({ title: "Leistung", el: sectionPanel("Leistung", power) });
+
+  const zones = drawZones(a);
+  if (zones) sections.push({ title: "Zonen", el: sectionPanel("Zonen", zones) });
+
+  const detail = statList(
+    [
+      row("Ø Puls", m.avgHr !== undefined ? n0(m.avgHr) + " bpm" : "–"),
+      row("Max Puls", m.maxHr !== undefined ? n0(m.maxHr) + " bpm" : "–"),
+      row("Ø Trittfrequenz", m.avgCadence !== undefined ? n0(m.avgCadence) + " rpm" : "–"),
+      row("Ø Tempo", m.avgSpeed !== undefined ? fmtKmh(m.avgSpeed) : "–"),
+      row("Max Tempo", m.maxSpeed !== undefined ? fmtKmh(m.maxSpeed) : "–"),
+      row("Temperatur", m.tempAvg !== undefined ? n0(m.tempAvg) + " °C" : "–"),
+    ],
+    "hr",
+  );
+  if (detail)
+    sections.push({
+      title: "Herzfrequenz",
+      el: sectionPanel("Herzfrequenz & mehr", detail),
+    });
+
+  sections.push({
+    title: "Fazit",
+    el: h("div", { class: "panel" }, feedbackBlock(a, prev)),
+  });
+
+  sections.push({
+    title: "Coach",
+    el: sectionPanel("Coach-Kommentar", coachBlock(a, profile, prev)),
+  });
+
+  return sections;
+}
+
 export function activityCard(
   a: Activity,
   profile: Profile,

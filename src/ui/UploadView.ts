@@ -12,7 +12,11 @@ const TYPE_OPTIONS: [ContextAnswers["type"], string][] = [
   ["other", "Sonstiges"],
 ];
 
-export function uploadView(
+/**
+ * Wiederverwendbares „Add Ride“-Panel: Dropzone + Import-Logik.
+ * Wird als Hauptaktion im Home-Reiter eingebettet.
+ */
+export function addRidePanel(
   profile: Profile,
   onDone: (r: IngestResult) => void,
 ): HTMLElement {
@@ -133,7 +137,7 @@ export function uploadView(
   return h(
     "div",
     {},
-    h("div", { class: "panel" }, h("h1", {}, "Upload"), drop, input),
+    h("div", { class: "panel add-ride" }, h("h1", {}, "Add Ride"), drop, input),
     status,
   );
 }
