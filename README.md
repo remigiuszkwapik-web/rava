@@ -23,7 +23,10 @@ wischbaren Vergleichen.
 - **Regelbasiertes Feedback** in 6 Abschnitten – immer offline verfügbar.
 - **Hybrid-Coach**: optionaler „Coach-Kommentar“ von Claude, direkt aus dem
   Browser mit eigenem, lokal gespeichertem API-Key.
-- **Swipeable Feed** und **Vergleichsansicht** (zwei Einheiten überlagert).
+- **Drei Reiter** – **Home** (Upload als Hauptaktion + Liste aller Fahrten),
+  **Rides** (Detail einer Fahrt mit swipebaren Abschnitten) und **Analyze**
+  (Vergleichsansicht, zwei Einheiten überlagert). Profil & Einstellungen im
+  Hamburger-Menü.
 - **PWA**: installierbar, funktioniert offline (Service-Worker + IndexedDB).
 
 Alle Daten bleiben lokal auf dem Gerät (IndexedDB). Kein Server, keine Konten.
@@ -61,36 +64,37 @@ gedacht – keine geteilte Installation mit fremdem Key.
 
 ## Farbkonzept
 
-Vivider Royal-Blau/Indigo-Look mit **Coral als Signalfarbe** – umgesetzt als
-Token-System in `src/styles.css` (`:root`). Vier Ebenen; die Bausteine sind die
-Wahrheit, die Rollen-Tokens (`--accent`, `--attention` …) bilden darauf ab, und
-UI-Regeln verwenden ausschließlich die Rollen.
+Monochromes **Tinte-auf-Papier-Konzept** (hell) mit **Coral als Signalfarbe** –
+umgesetzt als Token-System in `src/styles.css` (`:root`). Vier Ebenen; die
+Bausteine sind die Wahrheit, die Rollen-Tokens (`--accent`, `--attention` …)
+bilden darauf ab, und UI-Regeln verwenden ausschließlich die Rollen. Schrift:
+**Inter** (`@fontsource/inter`). Hell ist der Standard; ein aus derselben
+ink-Palette abgeleitetes dunkles Theme (`:root[data-theme="dark"]`) bleibt
+umschaltbar.
 
-**1) Marke – Indigo-Rampe**
+**1) Marke – Tinte**
 
 | Token | Hex | Einsatz |
 | --- | --- | --- |
-| `--indigo-300` | `#9aa2ff` | Sekundär-Akzent, Lavendel-Labels (`--accent-soft`) |
-| `--indigo-500` | `#4a54ff` | Primär, vivides Royal-Blau, Hero-Oberkante (`--accent`) |
-| `--indigo-600` | `#3b41f5` | Primärflächen, Hero-Mitte |
-| `--indigo-700` | `#2e33d6` | tief – Hero-Boden, gedrückter Zustand (`--accent-press`) |
-| `--indigo-900` | `#1b1f4d` | Hintergrund-Wash oben |
+| `--ink` | `#0a0a0a` | Primär-Akzent: aktive Tabs, Buttons, Hero-/Statleiste (`--accent`) |
+| `--ink-press` | `#2b2b2b` | gedrückter Zustand (`--accent-press`) |
 
 **2) Signal – Coral** (`--attention`)
 
 | Token | Hex | Einsatz |
 | --- | --- | --- |
 | `--coral` | `#ff5a2e` | Aufmerksamkeit/Rückgang: Fehlermeldungen, Drop-Hover |
+| `--green` | `#33c65a` | Zuwachs/positive Veränderung |
 
-**3) Neutral – Fläche & Text:** `--bg #0b0e17`, `--panel #171b33`,
-`--line #2b3160`, `--text #eef1f8`, `--muted #9aa3b8`.
+**3) Neutral – Fläche & Text:** `--bg #f1f1f0`, `--panel #ffffff`,
+`--line #e4e4e2`, `--text #0a0a0a`, `--muted #8a8a88`.
 
 **4) Daten** (bewusst außerhalb der Marke, damit Werte lesbar bleiben):
 Leistung `--power #f2a93b`, Puls `--hr #e5484d`, Zonen `--z1…--z7`. Die
-Canvas-Diagramme in `src/ui/charts.ts` spiegeln dieselben Hex-Werte, da ein
-`<canvas>` keine CSS-Variablen kennt – bei Änderungen beide Stellen anpassen.
+Canvas-Diagramme in `src/ui/charts.ts` lesen die theme-abhängigen Neutral-/
+Akzentfarben live aus `:root`; Signal- und Datenfarben sind konstant.
 
-Kernregel: **Marke = Indigo, Signal = Coral, Daten = eigene Skala.** Puls-Rot
+Kernregel: **Marke = Tinte, Signal = Coral, Daten = eigene Skala.** Puls-Rot
 und Coral werden nicht vermischt – so bleibt „Herzfrequenz“ vom UI-Signal
 „Achtung“ unterscheidbar.
 

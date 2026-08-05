@@ -1,50 +1,46 @@
 :root {
   /* ==========================================================================
      RAVA – Farbkonzept (detailliert)
-     Referenz: vivider Royal-Blau/Indigo-Look mit Coral als Signalfarbe.
+     Referenz: Screenshot + Figma-Export „Rava". Monochromes Tinte-auf-Papier-
+     Konzept – kein Lila mehr. Coral bleibt einzige Signalfarbe.
      Aufbau in vier Ebenen:
-       1) Marke   – Indigo-Rampe (hell → tief)
-       2) Signal  – Coral (Aufmerksamkeit / Rückgang)
-       3) Neutral – Flächen & Text (Dark)
+       1) Marke   – Tinte (ink)
+       2) Signal  – Coral (Aufmerksamkeit / Rückgang), Grün (Zuwachs)
+       3) Neutral – Flächen & Text (Hell ist die Standard-Darstellung)
        4) Daten   – Leistung, Puls, Zonen
-     Bausteine (Rampe/Signal/Daten) sind die Wahrheit; die Rollen-Tokens
-     (--accent, --attention …) bilden darauf ab. UI-Regeln immer über Rollen.
+     Bausteine sind die Wahrheit; die Rollen-Tokens (--accent, --attention …)
+     bilden darauf ab. UI-Regeln immer über Rollen.
      ========================================================================== */
 
-  /* 1) Marke – Indigo-Rampe */
-  --indigo-50: #eef0ff; /* zarte Labels auf Dunkel */
-  --indigo-200: #c3c8ff;
-  --indigo-300: #9aa2ff; /* Sekundär-Akzent (Lavendel) */
-  --indigo-400: #6f78ff;
-  --indigo-500: #4a54ff; /* Primär – vivides Royal-Blau (Hero-Oberkante) */
-  --indigo-600: #3b41f5; /* Primär, Flächen */
-  --indigo-700: #2e33d6; /* tief – Hero-Boden, gedrückt */
-  --indigo-900: #1b1f4d; /* Hintergrund-Wash oben */
+  /* 1) Marke – Tinte */
+  --ink: #0a0a0a;
+  --ink-press: #2b2b2b;
 
-  /* 2) Signal – Coral */
+  /* 2) Signal – Coral & Grün */
   --coral-soft: #ff8a63;
   --coral: #ff5a2e; /* „76 % geringer als gestern“ */
   --coral-deep: #e5431c;
+  --green: #33c65a;
 
-  /* 3) Neutral – Fläche & Text (Dark ist die Standard-Darstellung) */
-  --bg: #0b0e17;
-  --bg-2: #0f1327;
-  --panel: #171b33;
-  --panel-2: #1d2242;
-  --line: #2b3160;
-  --text: #eef1f8;
-  --muted: #9aa3b8;
+  /* 3) Neutral – Fläche & Text (Hell ist die Standard-Darstellung) */
+  --bg: #f1f1f0;
+  --bg-2: #e7e7e5;
+  --panel: #ffffff;
+  --panel-2: #f5f5f4;
+  --line: #e4e4e2;
+  --text: #0a0a0a;
+  --muted: #8a8a88;
   --on-accent: #ffffff;
   /* Zusammengesetzte Flächen (pro Theme überschrieben) */
-  --wash-1: var(--indigo-900); /* Hintergrund-Wash oben */
-  --wash-2: #12163a;
+  --wash-1: var(--bg);
+  --wash-2: var(--bg);
   --wash-3: var(--bg);
-  --topbar-bg: rgba(23, 27, 60, 0.72);
+  --topbar-bg: rgba(241, 241, 240, 0.82);
 
-  /* Rollen – auf Rampe/Signal abgebildet (in Regeln diese verwenden) */
-  --accent: var(--indigo-500);
-  --accent-press: var(--indigo-700);
-  --accent-soft: var(--indigo-300);
+  /* Rollen – auf Marke/Signal abgebildet (in Regeln diese verwenden) */
+  --accent: var(--ink);
+  --accent-press: var(--ink-press);
+  --accent-soft: var(--muted);
   --attention: var(--coral);
 
   /* 4) Daten – Leistung, Puls, Zonen */
@@ -59,29 +55,33 @@
   --z6: #ef7d43;
   --z7: #e5484d;
 
-  --radius: 20px;
+  --radius: 26px; /* Panel */
+  --radius-input: 16px;
+  --radius-chip: 14px;
   --gap: 12px;
-  color-scheme: dark;
+  color-scheme: light;
 }
 
-/* ---- Helles Theme: weiße Flächen wie in der Referenz -------------------------
-   Nur die neutralen Rollen + zusammengesetzten Flächen werden getauscht.
-   Marke (Indigo) und Signal (Coral) bleiben identisch; --accent-soft wird
-   dunkler, damit Labels auf Weiß lesbar bleiben. Datenfarben unverändert. */
-:root[data-theme="light"] {
-  color-scheme: light;
-  --bg: #eef0f5;
-  --bg-2: #f6f7fb;
-  --panel: #ffffff;
-  --panel-2: #f4f6fb;
-  --line: #e3e6f0;
-  --text: #14162b;
-  --muted: #6b7183;
-  --accent-soft: var(--indigo-600);
-  --wash-1: #dfe3ff;
-  --wash-2: #e9ebf7;
+/* ---- Dunkles Theme: aus derselben ink-Palette abgeleitet (ohne Lila) ---------
+   Neutrale Flächen invertieren; der Akzent wird hell (auf Dunkel lesbar),
+   Signal- und Datenfarben bleiben gleich. */
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  --bg: #0f0f0f;
+  --bg-2: #171717;
+  --panel: #1c1c1c;
+  --panel-2: #242424;
+  --line: #2e2e2e;
+  --text: #f1f1f0;
+  --muted: #8a8a88;
+  --on-accent: #0a0a0a;
+  --accent: #ededed;
+  --accent-press: #cfcfcf;
+  --accent-soft: var(--muted);
+  --wash-1: var(--bg);
+  --wash-2: var(--bg);
   --wash-3: var(--bg);
-  --topbar-bg: rgba(255, 255, 255, 0.82);
+  --topbar-bg: rgba(15, 15, 15, 0.82);
 }
 
 * {
@@ -97,17 +97,9 @@ body {
 
 body {
   background: var(--bg);
-  /* Durchgehender Indigo-Wash: oben satt (Marke), nach unten in die Fläche */
-  background-image: linear-gradient(
-    180deg,
-    var(--wash-1) 0%,
-    var(--wash-2) 22%,
-    var(--wash-3) 55%
-  );
-  background-attachment: fixed;
   color: var(--text);
-  font-family: system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial,
-    sans-serif;
+  font-family: "Inter", system-ui, -apple-system, "Segoe UI", Roboto, Helvetica,
+    Arial, sans-serif;
   font-size: 15px;
   line-height: 1.4;
   -webkit-font-smoothing: antialiased;
@@ -133,7 +125,8 @@ td.num {
   position: sticky;
   top: 0;
   z-index: 10;
-  display: flex;
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
   align-items: center;
   gap: var(--gap);
   padding: max(10px, env(safe-area-inset-top)) 14px 10px;
@@ -142,40 +135,75 @@ td.num {
   border-bottom: 1px solid var(--line);
 }
 .topbar .brand {
-  font-weight: 800;
-  letter-spacing: 2px;
-  margin-right: auto;
-  color: var(--accent);
+  grid-column: 2;
+  justify-self: center;
+  font-weight: 900;
+  letter-spacing: -0.5px;
+  font-size: 20px;
+  color: var(--text);
 }
-.topbar select,
-.topbar button {
+.topbar .menu-btn {
+  grid-column: 1;
+  justify-self: start;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  padding: 0;
+  background: transparent;
+  border: none;
+  border-radius: 12px;
+  cursor: pointer;
+  color: var(--text);
+}
+.topbar .menu-btn svg {
+  width: 22px;
+  height: 22px;
+}
+.topbar select {
+  grid-column: 3;
+  justify-self: end;
   background: var(--panel);
   color: var(--text);
   border: 1px solid var(--line);
-  border-radius: 10px;
-  padding: 8px 10px;
+  border-radius: 999px;
+  padding: 8px 12px;
   font: inherit;
+  font-weight: 600;
+  width: auto;
+}
+
+/* ---- Begrüßung (Hero-Titel über den Tabs) ---- */
+.greeting {
+  text-align: center;
+  font-weight: 900;
+  font-size: 26px;
+  letter-spacing: -0.5px;
+  color: var(--text);
+  margin: 18px 14px 6px;
 }
 
 .nav {
   display: flex;
+  justify-content: center;
   gap: 6px;
-  padding: 8px 14px;
-  border-bottom: 1px solid var(--line);
+  padding: 8px 14px 14px;
   overflow-x: auto;
 }
 .nav button {
   background: transparent;
-  color: var(--muted);
-  border: 1px solid transparent;
+  color: var(--text);
+  border: none;
   border-radius: 999px;
-  padding: 6px 14px;
+  padding: 8px 20px;
   font: inherit;
+  font-weight: 600;
   white-space: nowrap;
+  cursor: pointer;
 }
 .nav button.active {
   color: var(--on-accent);
-  border-color: var(--accent);
   background: var(--accent);
 }
 
@@ -304,15 +332,9 @@ button.ghost {
   color: var(--text);
 }
 
-/* ---- Dashboard: Hero-Block (kräftig eingefärbt) ---- */
+/* ---- Dashboard: Hero-Block (Tinte, wie die schwarze Statleiste der Referenz) ---- */
 .hero-block {
-  /* Vivides Royal-Blau der Referenz: hell oben → tiefes Indigo unten */
-  background: linear-gradient(
-    165deg,
-    var(--indigo-500) 0%,
-    var(--indigo-600) 52%,
-    var(--indigo-700) 100%
-  );
+  background: var(--ink);
   border-radius: var(--radius);
   padding: 18px;
   color: #fff;
@@ -497,4 +519,219 @@ canvas {
 progress {
   width: 100%;
   height: 8px;
+}
+
+/* ---- Home: „Add Ride“-Panel ---- */
+.add-ride {
+  text-align: center;
+}
+.add-ride h1 {
+  font-size: 26px;
+  font-weight: 900;
+  letter-spacing: -0.5px;
+  margin: 0 0 14px;
+}
+
+/* ---- Home: kompakte Ride-Zusammenfassungskarten ---- */
+.ride-card {
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  padding: 18px 16px;
+  margin-bottom: var(--gap);
+  cursor: pointer;
+  text-align: center;
+  -webkit-tap-highlight-color: transparent;
+}
+.ride-card:active {
+  background: var(--panel-2);
+}
+.ride-card .rc-title {
+  font-weight: 800;
+  font-size: 14px;
+  letter-spacing: 0.4px;
+  text-transform: uppercase;
+}
+.ride-card .rc-date {
+  color: var(--muted);
+  font-size: 14px;
+  margin-top: 4px;
+}
+.ride-card .stat-bar {
+  display: flex;
+  align-items: stretch;
+  margin-top: 14px;
+  background: var(--ink);
+  color: #fff;
+  border-radius: 14px;
+  overflow: hidden;
+}
+.ride-card .stat-bar .sb {
+  flex: 1;
+  min-width: 0;
+  padding: 14px 10px;
+  font-weight: 800;
+  font-size: 24px;
+  font-variant-numeric: tabular-nums;
+}
+.ride-card .stat-bar .sb + .sb {
+  border-left: 1px solid rgba(255, 255, 255, 0.28);
+}
+.ride-card .stat-bar .sb .u {
+  font-size: 13px;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.7);
+  margin-left: 3px;
+}
+
+/* ---- Hamburger-Drawer (weitere Themen: Profil, Einstellungen) ---- */
+.drawer-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 50;
+  background: rgba(10, 10, 10, 0.4);
+  backdrop-filter: blur(2px);
+}
+.drawer {
+  position: fixed;
+  top: 0;
+  left: 0;
+  bottom: 0;
+  z-index: 51;
+  width: min(84vw, 320px);
+  background: var(--panel);
+  border-right: 1px solid var(--line);
+  padding: max(16px, env(safe-area-inset-top)) 16px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  box-shadow: 0 0 40px rgba(0, 0, 0, 0.18);
+  overflow-y: auto;
+}
+.drawer .drawer-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 12px;
+}
+.drawer .drawer-head .brand {
+  font-weight: 900;
+  font-size: 20px;
+  letter-spacing: -0.5px;
+}
+.drawer .drawer-close {
+  width: 36px;
+  height: 36px;
+  border: none;
+  background: transparent;
+  font-size: 22px;
+  line-height: 1;
+  cursor: pointer;
+  color: var(--text);
+}
+.drawer .drawer-item {
+  text-align: left;
+  background: transparent;
+  border: none;
+  border-radius: 14px;
+  padding: 14px 14px;
+  font: inherit;
+  font-weight: 600;
+  color: var(--text);
+  cursor: pointer;
+}
+.drawer .drawer-item:active,
+.drawer .drawer-item.active {
+  background: var(--panel-2);
+}
+
+/* ---- Rides: klebriger Fahrt-Indikator über dem Swipe-Deck ---- */
+.ride-indicator {
+  position: sticky;
+  top: 0; /* per JS auf die Höhe der Kopfleiste gesetzt */
+  z-index: 8;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin: -14px -14px 12px; /* über die main-Polsterung hinaus bis zum Rand */
+  padding: 12px 14px;
+  background: var(--topbar-bg);
+  backdrop-filter: blur(10px);
+  border-bottom: 1px solid var(--line);
+}
+.ride-indicator .ri-name {
+  font-weight: 800;
+  font-size: 15px;
+  min-width: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.ride-indicator .ri-nav {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex: none;
+}
+.ride-indicator .ri-count {
+  color: var(--muted);
+  font-size: 13px;
+  font-variant-numeric: tabular-nums;
+}
+.ride-indicator .ri-arrow {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 30px;
+  padding: 0;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: var(--panel);
+  color: var(--text);
+  font-size: 18px;
+  line-height: 1;
+  cursor: pointer;
+}
+.ride-indicator .ri-arrow:disabled {
+  opacity: 0.35;
+  cursor: default;
+}
+
+/* ---- Info-Icon + Kurzerklärung zu Fachbegriffen ---- */
+.info-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 16px;
+  height: 16px;
+  margin-left: 6px;
+  padding: 0;
+  border: 1px solid var(--muted);
+  border-radius: 50%;
+  background: transparent;
+  color: var(--muted);
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: 11px;
+  font-style: italic;
+  font-weight: 700;
+  line-height: 1;
+  cursor: pointer;
+  vertical-align: middle;
+  flex: none;
+}
+.info-btn.on {
+  border-color: var(--accent);
+  background: var(--accent);
+  color: var(--on-accent);
+}
+.info-text {
+  color: var(--muted);
+  font-size: 13px;
+  line-height: 1.45;
+  padding: 10px 12px;
+  margin: 4px 0 6px;
+  background: var(--panel-2);
+  border-radius: 12px;
 }

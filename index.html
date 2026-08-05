@@ -6,7 +6,7 @@
       name="viewport"
       content="width=device-width, initial-scale=1.0, viewport-fit=cover"
     />
-    <meta name="theme-color" content="#0B0E17" />
+    <meta name="theme-color" content="#f1f1f0" />
     <meta
       name="description"
       content="Rava – persönliche Ausdaueranalyse für Rad & Lauf, offline-fähig."
@@ -29,7 +29,7 @@
         if (t === "light" || t === "dark") {
           document.documentElement.dataset.theme = t;
           var m = document.querySelector('meta[name="theme-color"]');
-          if (m && t === "light") m.setAttribute("content", "#eef0f5");
+          if (m && t === "dark") m.setAttribute("content", "#0f0f0f");
         }
       } catch (e) {}
     </script>

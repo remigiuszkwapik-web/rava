@@ -21,11 +21,11 @@ export async function setCoachModel(model: string): Promise<void> {
 
 // ---- Darstellung (Hell/Dunkel) ----
 export type Theme = "dark" | "light";
-export const DEFAULT_THEME: Theme = "dark";
+export const DEFAULT_THEME: Theme = "light";
 const THEME_KEY = "rava-theme";
 const THEME_META: Record<Theme, string> = {
-  dark: "#0b0e17",
-  light: "#eef0f5",
+  dark: "#0f0f0f",
+  light: "#f1f1f0",
 };
 
 export async function getTheme(): Promise<Theme> {
