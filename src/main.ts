@@ -214,6 +214,13 @@ function content(): HTMLElement {
           await loadData();
           render();
         },
+        onContextChange: async (a, ctx) => {
+          a.context = { ...a.context, ...ctx };
+          await putActivity(a);
+          selectedActivityId = a.id;
+          await loadData();
+          render();
+        },
       });
     case "analyze":
       return compareView(activities, p);

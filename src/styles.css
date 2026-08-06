@@ -499,6 +499,91 @@ h2.section {
   min-width: 64px;
 }
 
+/* Kopf-Badges (Gruppe / Ziel) auf dem Tinte-Hero */
+.meta-badges {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 10px;
+}
+.meta-badge {
+  display: inline-block;
+  padding: 3px 10px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 600;
+  color: #fff;
+  background: rgba(255, 255, 255, 0.16);
+}
+
+/* Kontext-Editor: Kopfzeile mit Bearbeiten-Button */
+.context-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 8px;
+}
+.context-title {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--muted);
+}
+.ctx-edit {
+  flex: none;
+  width: 30px;
+  height: 30px;
+  padding: 0;
+  border: 1px solid var(--line);
+  border-radius: 9px;
+  background: var(--panel-2);
+  color: var(--text);
+  font-size: 14px;
+  line-height: 1;
+  cursor: pointer;
+}
+.ctx-edit:active {
+  background: var(--bg-2);
+}
+
+/* Faktor-Chips (Upload + Kontext-Editor) */
+.factor-group {
+  margin-bottom: 10px;
+}
+.factor-group-label {
+  font-size: 12px;
+  color: var(--muted);
+  margin: 6px 0 4px;
+}
+.chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+.chip {
+  display: inline-block;
+  padding: 6px 12px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-chip);
+  background: var(--panel-2);
+  color: var(--text);
+  font: inherit;
+  font-size: 13px;
+  line-height: 1.2;
+  cursor: pointer;
+}
+.chip.selected {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: var(--on-accent);
+  font-weight: 600;
+}
+.chip.static {
+  cursor: default;
+  width: auto;
+  background: var(--panel-2);
+  color: var(--text);
+}
+
 canvas {
   width: 100%;
   display: block;

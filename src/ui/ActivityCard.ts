@@ -10,9 +10,10 @@ import {
   n2,
 } from "../format";
 import { coachComment } from "../llm/coach";
-import type { Activity, Profile } from "../model";
+import type { Activity, ContextAnswers, Profile } from "../model";
 import { getApiKey, getCoachModel } from "../state/settings";
 import { drawRoute, drawTimeline, drawZones } from "./charts";
+import { contextEditor, groupLabel, typeLabel } from "./contextForm";
 import { clear, h } from "./dom";
 
 /** Kurzerklärungen zu Fachbegriffen (Info-Icon in den Kennzahlen). */
@@ -22,7 +23,7 @@ const GLOSSARY: Record<string, string> = {
   tss: "Training Stress Score (TSS): Gesamtbelastung aus Dauer und Intensität. 100 entspricht etwa einer harten Stunde an der Schwelle (FTP).",
   vi: "Variabilität (VI): NP geteilt durch die Durchschnittsleistung. Nahe 1,0 = sehr gleichmäßig getreten, höher = viele Antritte und Pausen.",
   wkg: "W/kg: Leistung pro Kilogramm Körpergewicht (auf Basis der NP) – macht die Leistung unabhängig vom Gewicht vergleichbar.",
-  aerob: "Aerober Anteil: Zeit in den unteren Puls-Zonen (Z1–Z2), also im gut aeroben Grundlagenbereich. Da nur der Puls zählt, ist der Wert auch für Gruppenfahrten aussagekräftig.",
+  aerob: "Aerober Anteil: Zeit in den unteren Puls-Zonen (Z1–Z2), also im gut aeroben Grundlagenbereich. Ein hoher Wert steht für eine ruhige Grundlagenfahrt (Fettstoffwechsel, Regeneration, Ausdauerbasis), ein niedriger für viel Tempo-/Schwellenarbeit. Kein Wert ist per se besser – er zeigt, ob die Fahrt zum Ziel der Einheit gepasst hat: hoch bei Grundlage/Recovery, niedrig bei Intervall-/Tempoeinheiten. Der Wert ergänzt die Gesamtintensität, denn Dauer und einzelne harte Spitzen können sie hochtreiben, obwohl der Puls überwiegend niedrig blieb.",
   decoupling: "Aerobes Decoupling (Leistung:Puls): Drift von Leistung zu Puls von der 1. zur 2. Hälfte. Unter ~5 % = gute aerobe Ausdauer; höher deutet auf Ermüdung, dünne Grundlage oder Hitze hin. Sinnvoll nur bei gleichmäßigen Solo-Fahrten – bei Gruppenfahrten verfälscht der Windschatten Leistung/Puls, daher wird Decoupling dort nicht angezeigt.",
 };
 
@@ -246,6 +247,7 @@ export function activityDetail(
   profile: Profile,
   prev?: Activity,
   onRename?: (name: string) => void,
+  onContextChange?: (ctx: ContextAnswers) => void,
 ): HTMLElement {
   const m = a.metrics;
 
@@ -262,6 +264,17 @@ export function activityDetail(
   const title = onRename
     ? editableTitle(a.name, onRename)
     : h("div", { class: "hero-title" }, a.name);
+  const gLabel = groupLabel(a.context?.group);
+  const tLabel = typeLabel(a.context?.type);
+  const badges =
+    gLabel || tLabel
+      ? h(
+          "div",
+          { class: "meta-badges" },
+          gLabel ? h("span", { class: "meta-badge" }, gLabel) : null,
+          tLabel ? h("span", { class: "meta-badge" }, tLabel) : null,
+        )
+      : null;
   const head = h(
     "div",
     { class: "card-head" },
@@ -272,6 +285,7 @@ export function activityDetail(
       fmtDate(a.startTime) +
         (m.tempAvg !== undefined ? ` · ${n0(m.tempAvg)} °C` : ""),
     ),
+    badges,
     effortBadge(m.intensity),
   );
 
@@ -285,29 +299,12 @@ export function activityDetail(
   const heroBlock = h("div", { class: "hero-block" }, head, hero);
   const card = h("div", { class: "panel" }, heroBlock);
 
-  // Notiz & Wetter aus dem Upload-Kontext (falls angegeben)
-  if (a.context && (a.context.weather || a.context.notes)) {
-    const block = h("div", { class: "context-block" });
-    if (a.context.weather)
-      block.append(
-        h(
-          "div",
-          { class: "context-item" },
-          h("span", { class: "context-label" }, "Wetter"),
-          h("span", {}, a.context.weather),
-        ),
-      );
-    if (a.context.notes)
-      block.append(
-        h(
-          "div",
-          { class: "context-item" },
-          h("span", { class: "context-label" }, "Notiz"),
-          h("span", {}, a.context.notes),
-        ),
-      );
-    card.append(h("h2", { class: "section" }, "Notiz & Wetter"), block);
-  }
+  // Kontext (Gruppe, Ziel, Wetter, Faktoren, Notiz) – anzeigen & bearbeiten.
+  if (onContextChange)
+    card.append(
+      h("h2", { class: "section" }, "Kontext"),
+      contextEditor(a.context, onContextChange),
+    );
 
   // Stufe 2: Route (nur mit GPS)
   const route = drawRoute(a);
@@ -351,9 +348,13 @@ export function activityDetail(
     card.append(h("h2", { class: "section" }, "Herzfrequenz & mehr"), detail);
 
   // Aerobe Ausdauer: „Aerober Anteil" (windschatten-robust, alle Fahrten) +
-  // Decoupling (aus Leistung UND Puls berechnet; bei Gruppenfahrten verfälscht
-  // → dort ausgeblendet).
-  const isGroup = a.context?.group === "group";
+  // Decoupling (aus Leistung UND Puls berechnet; bei viel Windschatten verfälscht
+  // → dort ausgeblendet: Gruppe, unterwegs angeschlossen oder „viel Windschatten").
+  const factors = new Set(a.context?.factors ?? []);
+  const isGroup =
+    a.context?.group === "group" ||
+    factors.has("joined-group") ||
+    factors.has("much-draft");
   let aerobShare = "–";
   if (m.hrZones && m.hrZones.seconds.length >= 2) {
     const total = m.hrZones.seconds.reduce((s, x) => s + x, 0);
