@@ -7,6 +7,11 @@ import type {
 } from "../model";
 
 const MOVING_SPEED = 0.8; // m/s
+// Wird zwischen zwei Records länger als das nicht aufgezeichnet (Pause/Stopp),
+// werden die dazwischenliegenden Sekunden nicht mit dem letzten Wert aufgefüllt,
+// sondern als "keine Daten" behandelt. Sonst würden lange Standzeiten (Auto-Pause)
+// z. B. die Normalized Power verwässern und die TSS über die Bruttozeit aufblähen.
+const HOLD_GAP_S = 6;
 
 function clamp(v: number, lo: number, hi: number): number {
   return Math.max(lo, Math.min(hi, v));
@@ -42,11 +47,13 @@ function resample(samples: Sample[], maxT: number): Resampled {
       cur = samples[j];
       j++;
     }
-    power[s] = cur?.power;
-    hr[s] = cur?.hr;
-    cad[s] = cur?.cadence;
-    speed[s] = cur?.speed;
-    alt[s] = cur?.altitude;
+    // Bei zu großem Abstand (Pause/Stopp) nicht auffüllen → keine Daten.
+    const src = cur !== undefined && s - cur.t <= HOLD_GAP_S ? cur : undefined;
+    power[s] = src?.power;
+    hr[s] = src?.hr;
+    cad[s] = src?.cadence;
+    speed[s] = src?.speed;
+    alt[s] = src?.altitude;
   }
   return {
     n,
@@ -247,9 +254,11 @@ export function computeMetrics(
     missing,
   };
 
-  // Leistung
+  // Leistung – nur über tatsächlich aufgezeichnete Sekunden (ohne Pausen),
+  // damit Standzeiten NP/IF nicht verwässern und die TSS nicht aufblähen.
   if (rs.hasPower) {
-    const p1 = rs.power.map((p) => p ?? 0);
+    const p1 = rs.power.filter((p): p is number => p !== undefined);
+    const recordedS = p1.length; // ≈ Timer-/Aufzeichnungszeit
     m.avgPower = Math.round(mean(p1));
     const rawMax = samples.reduce<number>(
       (a, s) => (s.power !== undefined && s.power > a ? s.power : a),
@@ -261,7 +270,7 @@ export function computeMetrics(
       m.if = Math.round((m.np / profile.ftp) * 100) / 100;
       m.tss =
         Math.round(
-          ((durationTotalS * m.np * m.if) / (profile.ftp * 3600)) * 100,
+          ((recordedS * m.np * m.if) / (profile.ftp * 3600)) * 100,
         );
       m.powerZones = powerZoneModel(profile.ftp, rs.power);
     }
