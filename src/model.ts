@@ -84,6 +84,10 @@ export interface Metrics {
   intensity: number;
   /** Kurze Hinweise auf fehlende Kanäle. */
   missing: string[];
+  /** Beste Ø-Leistung (Watt) je Zeitfenster in Sekunden – aus Vollauflösung. */
+  bestPower?: Record<number, number>;
+  /** Bestes Ø-Tempo (m/s) je Zeitfenster – Fallback ohne Leistung. */
+  bestSpeed?: Record<number, number>;
 }
 
 export interface Activity {

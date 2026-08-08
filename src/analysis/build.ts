@@ -7,6 +7,7 @@ import type {
   SourceKind,
 } from "../model";
 import { uid } from "../state/profile";
+import { computeBestEfforts } from "./bestEfforts";
 import { computeMetrics } from "./metrics";
 import { detectPhases } from "./segments";
 
@@ -63,6 +64,12 @@ export function buildActivity(
   opts: BuildOpts = {},
 ): Activity {
   const metrics = computeMetrics(parsed, profile);
+  // Bestwerte je Zeitfenster aus voller Auflösung (nicht aus den 10-s-Bins),
+  // damit auch kurze Fenster (5 s …) exakt sind.
+  const hasPower = parsed.samples.some((s) => s.power !== undefined);
+  const eff = computeBestEfforts(parsed.samples, hasPower);
+  metrics.bestPower = eff.bestPower;
+  metrics.bestSpeed = eff.bestSpeed;
   const ds = downsample(parsed.samples);
   const phases = detectPhases(ds, profile);
   return {

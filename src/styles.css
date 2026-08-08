@@ -482,6 +482,63 @@ h2.section {
   color: var(--hr);
 }
 
+/* ---- Meilensteine: Medaillen-Badges (Best Efforts) ---- */
+.milestones {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-top: 12px;
+}
+.milestone {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 12px 14px;
+  background: var(--panel-2);
+  border: 1px solid var(--line);
+  border-radius: 14px;
+}
+.medal {
+  flex: none;
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 18px;
+  font-weight: 800;
+  color: #fff;
+  font-variant-numeric: tabular-nums;
+  box-shadow: inset 0 -3px 6px rgba(0, 0, 0, 0.25);
+}
+.medal-1 {
+  background: var(--power);
+}
+.medal-2 {
+  background: #9aa0a6;
+}
+.medal-3 {
+  background: #cd7f32;
+}
+.milestone-title {
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--text);
+}
+.milestone-sub {
+  margin-top: 2px;
+  font-size: 13px;
+  color: var(--muted);
+  font-variant-numeric: tabular-nums;
+}
+.milestone-season {
+  margin-top: 2px;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--green);
+}
+
 /* ---- Kontext: Notiz & Wetter ---- */
 .context-item {
   display: flex;

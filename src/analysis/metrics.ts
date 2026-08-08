@@ -15,7 +15,7 @@ function mean(xs: number[]): number {
   return xs.length ? xs.reduce((a, b) => a + b, 0) / xs.length : 0;
 }
 
-interface Resampled {
+export interface Resampled {
   n: number;
   power: (number | undefined)[];
   hr: (number | undefined)[];
@@ -28,7 +28,7 @@ interface Resampled {
 }
 
 /** Auf 1-Hz-Raster bringen (stufig: letzter Wert ≤ Sekunde). */
-function resample(samples: Sample[], maxT: number): Resampled {
+export function resample(samples: Sample[], maxT: number): Resampled {
   const n = Math.max(1, Math.floor(maxT) + 1);
   const power = new Array<number | undefined>(n);
   const hr = new Array<number | undefined>(n);

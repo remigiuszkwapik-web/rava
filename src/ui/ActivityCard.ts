@@ -1,3 +1,10 @@
+import {
+  effortsOf,
+  EFFORT_WINDOWS,
+  milestonesFor,
+  windowLabel,
+  type Milestone,
+} from "../analysis/bestEfforts";
 import { buildFeedback } from "../analysis/feedback";
 import { hrZoneModel, powerZoneModel } from "../analysis/metrics";
 import {
@@ -109,6 +116,55 @@ function statList(
     if (tip) list.append(tip);
   }
   return list;
+}
+
+/** „beste" / „zweithöchste" / „dritthöchste" für den Badge-Text. */
+function rankWord(rank: number): string {
+  return rank === 1 ? "beste" : rank === 2 ? "zweithöchste" : "dritthöchste";
+}
+
+/** Eine Medaille + Text wie im Strava-Screenshot. */
+function milestoneBadge(m: Milestone): HTMLElement {
+  const noun = m.kind === "power" ? "Leistung" : "Tempo";
+  const article = m.kind === "power" ? "Deine" : "Dein";
+  const val = m.kind === "power" ? n0(m.value) + " W" : fmtKmh(m.value);
+  const medal = h("div", { class: `medal medal-${m.rank}` }, String(m.rank));
+  const lines = [
+    h(
+      "div",
+      { class: "milestone-title" },
+      `${article} ${rankWord(m.rank)} ${noun} über ${windowLabel(m.window, true)}!`,
+    ),
+    h("div", { class: "milestone-sub" }, val),
+  ];
+  if (m.seasonBest)
+    lines.push(
+      h(
+        "div",
+        { class: "milestone-season" },
+        `Saison-Bestleistung ${new Date().getFullYear()}`,
+      ),
+    );
+  return h("div", { class: "milestone" }, medal, h("div", {}, ...lines));
+}
+
+/** Meilenstein-Badges (nur Top-3-Fenster), sonst null. */
+function milestoneBadges(a: Activity, all: Activity[]): HTMLElement | null {
+  const ms = milestonesFor(a, all);
+  if (!ms.length) return null;
+  return h("div", { class: "milestones" }, ...ms.map(milestoneBadge));
+}
+
+/** Kompakte Bestwert-Tabelle über alle Zeitfenster. */
+function bestEffortTable(a: Activity): HTMLElement | null {
+  const eff = effortsOf(a);
+  const rows = EFFORT_WINDOWS.map((w) => {
+    const v = eff.best[w];
+    if (v === undefined) return null;
+    const val = eff.kind === "power" ? n0(v) + " W" : fmtKmh(v);
+    return row(windowLabel(w), val);
+  });
+  return statList(rows, eff.kind === "power" ? "power" : "");
 }
 
 function feedbackBlock(a: Activity, prev?: Activity): HTMLElement {
@@ -246,6 +302,7 @@ export function activityDetail(
   a: Activity,
   profile: Profile,
   prev?: Activity,
+  all: Activity[] = [],
   onRename?: (name: string) => void,
   onContextChange?: (ctx: ContextAnswers) => void,
 ): HTMLElement {
@@ -373,6 +430,14 @@ export function activityDetail(
         ),
   ]);
   if (aerob) card.append(h("h2", { class: "section" }, "Aerobe Ausdauer"), aerob);
+
+  // Meilensteine (Top-3-Bestleistungen) + Bestwert-Tabelle je Zeitfenster.
+  const milestoneEl = milestoneBadges(a, all);
+  if (milestoneEl)
+    card.append(h("h2", { class: "section" }, "Meilensteine"), milestoneEl);
+  const efforts = bestEffortTable(a);
+  if (efforts)
+    card.append(h("h2", { class: "section" }, "Bestleistungen"), efforts);
 
   card.append(feedbackBlock(a, prev));
   card.append(coachBlock(a, profile, prev));

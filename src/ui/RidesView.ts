@@ -72,6 +72,7 @@ export function ridesView(
         a,
         profile,
         prev,
+        activities,
         (name) => handlers.onRename(a, name),
         (ctx) => handlers.onContextChange(a, ctx),
       ),
