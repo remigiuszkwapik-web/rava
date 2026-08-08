@@ -67,5 +67,16 @@ export async function parseFit(
     fallbackName ||
     new Date(startMs).toLocaleString("de-DE");
 
-  return { sport, startTime: startMs, name, samples, hasGps, source: "fit" };
+  const deviceElevGain =
+    num(session?.total_ascent) ?? num(data?.activity?.total_ascent);
+
+  return {
+    sport,
+    startTime: startMs,
+    name,
+    samples,
+    hasGps,
+    source: "fit",
+    deviceElevGain,
+  };
 }

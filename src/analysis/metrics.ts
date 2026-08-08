@@ -229,7 +229,12 @@ export function computeMetrics(
         ? mean(speedVals)
         : undefined;
 
-  const elevGain = elevationGain(rs.alt);
+  // Bevorzugt die vom Gerät aufgezeichneten Höhenmeter (FIT total_ascent);
+  // nur wenn die fehlen, wird aus der Höhenkurve selbst gerechnet.
+  const elevGain =
+    parsed.deviceElevGain !== undefined && parsed.deviceElevGain > 0
+      ? Math.round(parsed.deviceElevGain)
+      : elevationGain(rs.alt);
 
   const m: Metrics = {
     durationMovingS,

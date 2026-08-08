@@ -27,6 +27,8 @@ export interface ParsedActivity {
   samples: Sample[];
   hasGps: boolean;
   source: SourceKind;
+  /** Vom Gerät aufgezeichnete Höhenmeter (FIT-Session total_ascent), falls vorhanden. */
+  deviceElevGain?: number;
   /** Zeitstempel des ersten Samples in ms (für Bin-Berechnung). */
 }
 
